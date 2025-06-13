@@ -1,4 +1,6 @@
 
+/*
+
 import { initializeApp } from "firebase/app"; //inicializamos sesion en firebase(para login, singin o sign up)
 import { getAuth,createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification} from "firebase/auth";
 import express from 'express';
@@ -114,7 +116,7 @@ router.post('/signin', SignInValidator,async (req, res) => {
 });
 
 export default router;
-
+*/
 
 
 

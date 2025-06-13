@@ -15,9 +15,13 @@
   "dependencies": {
     "axios": "^1.9.0",
     "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "firebase-admin": "^13.4.0"
+    "express-validator": "^7.2.1",
+    "firebase": "^11.9.1",
+    "firebase-admin": "^13.4.0",
+    "postgres": "^3.4.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

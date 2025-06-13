@@ -1,9 +1,96 @@
 import axios from "axios";
+import auth from "../config/firebase.js";
+import {sql} from '../config/postgre.js';
+//import { sql } from "./postgre.js";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification } from "firebase/auth";
 
 class AuthController {
 
+    // Funcion para registrar usuario
+    static async registrarUsuario(req, res) {
+        const { email, password, nombre } = req.body;
 
-    async login(req, res) {
+        try {
+            const result = await sql`SELECT validar_usuario( ${email}, ${password})`;
+
+            if (result[0].validar_usuario) { // Extrae el boolean del arreglo del resultado
+                const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredentials.user;
+                const uid = userCredentials.user.uid;
+
+                await sendEmailVerification(user);
+
+                const userdata = {
+                    id: uid,
+                    nombre: nombre,
+                    email: email,
+                    password: password
+                };
+
+                await sql`INSERT INTO Usuarios ${sql(userdata)} `;
+
+                res.status(203).send({
+                    mensaje: "Su usuario fue creado correctamente",
+                });
+            } else {
+                res.status(400).send({
+                    mensaje: "Error: Email o contraseña ya existen en la base de datos",
+                });
+            }
+        } catch (err) {
+            console.error('Error al crear el usuario:', err);
+            res.status(500).send('Error al crear el usuario: ' + err.message);
+        }
+    }
+
+    // Funcion para autenticar el usuario existente
+    static async loginUsuario(req, res) {
+        const { email, password } = req.body;
+
+        const user = auth.currentUser;
+
+        if (user) {
+            res.status(401).send({ mensaje: "Ya hay cuenta iniciada" + user.email });
+            return;
+        }
+
+
+        try {
+            const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+
+
+            res.status(203).send({
+                mensaje: "Sesion iniciada correctamente",
+            });
+
+        } catch (err) {
+            console.error('Error al crear el usuario:', err);
+            res.status(500).send('Error al crear el usuario: ' + err.message);
+        }
+    }
+
+    //Funcion para sign out el usuario
+    static async signOutUsuario(req, res) {
+        const user = auth.currentUser;
+        if (!user) {
+            res.status(401).send("No hay cuenta iniciada");
+            return;
+        }
+
+        try {
+
+            await signOut(auth);
+            res.status(203).send({
+                mensaje: "Sesion cerrada",
+            });
+
+        } catch (err) {
+            console.error('Error al cerrar sesion:', err);
+            res.status(500).send('Error al crear el usuario: ' + err.message);
+        }
+    }
+
+    /*async login(req, res) {
         //Logica para procesar el login
 
         //recibir los datos
@@ -28,8 +115,8 @@ class AuthController {
 
 
             const idToken = response.data.idToken;
-            
-             return res.status(200).json({ status: 'OK', message: 'Login exitoso!', token: idToken, userId: response.data.localId });
+
+            return res.status(200).json({ status: 'OK', message: 'Login exitoso!', token: idToken, userId: response.data.localId });
 
 
             //Buscar por email en usuarios
@@ -46,15 +133,17 @@ class AuthController {
             //Validad contrasena
             if(foundUser.password !== userPass){
                 return res.status(401).json({error: 'Incorrect password'});
-            }*/
+            }
 
             //Si todo sale bien
-           
+
         } catch (e) {
             res.status(500).json({ error: `Ocurrio un error ${e}` });
         }
+        
+        */
 
-    }
+
 }
 
 export default AuthController;
