@@ -90,6 +90,39 @@ class AuthController {
         }
     }
 
+    //Funcion para registrar un formulario de Contacto
+
+   static async registrarformulario(req, res) {
+    const { email, nombre, apellido, telefono, direccion, proposito, mensaje } = req.body;
+
+    try {
+    
+
+        await sql`
+            INSERT INTO Contactos (emailcontacto, nombre, apellido, telefono, direccion, proposito, mensaje)
+            VALUES (
+                ${email},
+                ${nombre},
+                ${apellido},
+                ${telefono},
+                ${direccion},
+                ${sql.array(proposito)},
+                ${mensaje}
+            )
+        `;
+
+        res.status(201).send({ mensaje: "Formulario enviado correctamente." });
+
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).send({
+            mensaje: "Hubo un problema al registrar el formulario, inténtalo nuevamente.",
+            error: error.message
+        });
+    }
+}
+
+
     /*async login(req, res) {
         //Logica para procesar el login
 

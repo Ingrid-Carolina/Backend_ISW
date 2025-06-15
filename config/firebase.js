@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
 import { initializeApp } from "firebase/app"; //inicializamos sesion en firebase(para login, singin o sign up)
 import { getAuth } from "firebase/auth";
 
