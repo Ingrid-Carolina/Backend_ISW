@@ -1,5 +1,4 @@
-name: Deploy Node.js App (Simple)
-
+name: Deploy Node.js App (Error Tolerant)
 on:
   push:
     branches: [master]
@@ -8,7 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,35 +19,180 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          timeout: 300s
+          command_timeout: 60s
           script: |
-            # Navigate to your app directory
-            cd ~/Backend_ISW
+            set -e  # Exit on any error
 
-            # Change to master
-            git checkout master
+            # Function to log with timestamp
+            log() {
+              echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+            }
 
-            # Pull latest changes
-            git pull origin master
+            # Function to retry commands
+            retry() {
+              local retries=$1
+              shift
+              local count=0
+              until "$@"; do
+                exit_code=$?
+                count=$((count + 1))
+                if [ $count -lt $retries ]; then
+                  log "Command failed with exit code $exit_code. Attempt $count/$retries. Retrying in 5 seconds..."
+                  sleep 5
+                else
+                  log "Command failed after $retries attempts."
+                  return $exit_code
+                fi
+              done
+            }
 
-            # Install/update dependencies
-            npm install --production
+            # Function to gracefully stop the app
+            stop_app() {
+              log "Attempting to stop existing application..."
+              
+              # Try graceful shutdown first (if your app supports SIGTERM)
+              if pgrep -f "node index.js" > /dev/null; then
+                log "Found running process. Attempting graceful shutdown..."
+                pkill -TERM -f "node index.js" || true
+                
+                # Wait for graceful shutdown
+                for i in {1..10}; do
+                  if ! pgrep -f "node index.js" > /dev/null; then
+                    log "Application stopped gracefully."
+                    return 0
+                  fi
+                  sleep 1
+                done
+                
+                # Force kill if graceful shutdown failed
+                log "Graceful shutdown failed. Force killing..."
+                pkill -KILL -f "node index.js" || true
+                sleep 2
+              else
+                log "No existing process found."
+              fi
+            }
 
-            # Kill existing Node.js process (if running)
-            pkill -f "node index.js" || true
+            # Main deployment process
+            log "Starting deployment process..."
 
-            # Wait a moment for process to fully stop
-            sleep 2
+            # Check if directory exists
+            if [ ! -d "~/Backend_ISW" ]; then
+              log "ERROR: Directory ~/Backend_ISW does not exist!"
+              exit 1
+            fi
 
-            # Start the application in background
+            # Navigate to app directory
+            log "Navigating to application directory..."
+            cd ~/Backend_ISW || {
+              log "ERROR: Failed to navigate to ~/Backend_ISW"
+              exit 1
+            }
+
+            # Backup current state (optional but recommended)
+            log "Creating backup of current state..."
+            git stash push -m "Pre-deploy backup $(date)" || log "Warning: Git stash failed (might be clean)"
+
+            # Switch to master branch with retry
+            log "Switching to master branch..."
+            retry 3 git checkout master || {
+              log "ERROR: Failed to checkout master branch"
+              exit 1
+            }
+
+            # Pull latest changes with retry
+            log "Pulling latest changes..."
+            retry 3 git pull origin master || {
+              log "ERROR: Failed to pull latest changes"
+              log "Attempting to reset to origin/master..."
+              git fetch origin || {
+                log "ERROR: Failed to fetch from origin"
+                exit 1
+              }
+              git reset --hard origin/master || {
+                log "ERROR: Failed to reset to origin/master"
+                exit 1
+              }
+            }
+
+            # Check if package.json exists
+            if [ ! -f "package.json" ]; then
+              log "ERROR: package.json not found!"
+              exit 1
+            fi
+
+            # Install dependencies with retry
+            log "Installing/updating dependencies..."
+            retry 3 npm ci --production --no-audit || {
+              log "npm ci failed, trying npm install..."
+              retry 3 npm install --production --no-audit || {
+                log "ERROR: Failed to install dependencies"
+                exit 1
+              }
+            }
+
+            # Stop existing application
+            stop_app
+
+            # Verify main file exists
+            if [ ! -f "index.js" ]; then
+              log "ERROR: index.js not found!"
+              exit 1
+            fi
+
+            # Start the application
+            log "Starting application..."
             nohup node index.js > app.log 2>&1 &
+            APP_PID=$!
+            log "Started application with PID: $APP_PID"
 
-            # Wait and check if process started
+            # Wait and verify startup
+            log "Waiting for application to start..."
+            sleep 5
+
+            # Check if process is still running
+            if kill -0 $APP_PID 2>/dev/null; then
+              log "Process is running with PID: $APP_PID"
+            else
+              log "ERROR: Process died immediately after start"
+              log "Last 20 lines of app.log:"
+              tail -20 app.log || log "Could not read app.log"
+              exit 1
+            fi
+
+            # Additional health checks
             sleep 3
             if pgrep -f "node index.js" > /dev/null; then
-              echo "App started successfully!"
-              # Optional: Add health check if your app has an endpoint
-              # curl -f http://localhost:3000/health || echo "Health check failed"
+              log "✅ Application started successfully!"
+              
+              # Optional: HTTP health check (uncomment and modify URL as needed)
+              # log "Performing health check..."
+              # if curl -f -m 10 http://localhost:3000/health >/dev/null 2>&1; then
+              #   log "✅ Health check passed!"
+              # else
+              #   log "⚠️  Health check failed, but app is running"
+              # fi
+              
+              # Show last few log lines for verification
+              log "Last 5 lines of application log:"
+              tail -5 app.log || log "Could not read recent logs"
+              
             else
-              echo "Failed to start app. Check app.log for errors."
-              tail -10 app.log
+              log "❌ Application failed to start or died after startup"
+              log "Last 20 lines of app.log:"
+              tail -20 app.log || log "Could not read app.log"
+              exit 1
             fi
+
+            log "🎉 Deployment completed successfully!"
+
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment completed successfully"
+          else
+            echo "❌ Deployment failed - check logs above"
+            exit 1
+          fi
