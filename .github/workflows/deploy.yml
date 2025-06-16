@@ -1,4 +1,4 @@
-name: Deploy Node.js App (Simple)
+name: Deploy Node.js App 2 (Simple)
 
 on:
   push:
