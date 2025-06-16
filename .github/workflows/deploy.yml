@@ -22,13 +22,13 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Navigate to your app directory
-            cd ~/backend-ISW
-
-            # Pull latest changes
-            git pull origin master
+            cd ~/Backend_ISW
 
             # Change to master
             git checkout master
+
+            # Pull latest changes
+            git pull origin master
 
             # Install/update dependencies
             npm install --production
