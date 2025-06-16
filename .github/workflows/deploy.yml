@@ -1,276 +1,53 @@
-name: Deploy Node.js App (Error Tolerant)
+name: Deploy Node.js App (Simple)
+
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Deploy to server
-        id: deploy_step
         uses: appleboy/ssh-action@v1.0.3
-        continue-on-error: true
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          timeout: 300s
-          command_timeout: 60s
           script: |
-            # Enhanced error handling - don't exit immediately
-            set -o pipefail  # Pipe failures will be caught
+            # # Navigate to your app directory
+            # cd ~/backend-ISW
 
-            # Global error tracking
-            DEPLOYMENT_FAILED=0
-            ERROR_DETAILS=""
+            # # Pull latest changes
+            # git pull origin main
 
-            # Function to handle errors
-            handle_error() {
-              local step="$1"
-              local error_code="$2"
-              local error_msg="$3"
-              DEPLOYMENT_FAILED=1
-              ERROR_DETAILS="${ERROR_DETAILS}❌ STEP: ${step} | CODE: ${error_code} | MSG: ${error_msg}\n"
-              log "ERROR in ${step}: ${error_msg} (Exit code: ${error_code})"
-            }
-            # Function to log with timestamp
-            log() {
-              echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-            }
+            # # Install/update dependencies
+            # npm install --production
 
-            # Enhanced retry function with better error reporting
-            retry() {
-              local retries=$1
-              local step_name=$2
-              shift 2
-              local count=0
-              until "$@"; do
-                exit_code=$?
-                count=$((count + 1))
-                if [ $count -lt $retries ]; then
-                  log "RETRY: ${step_name} failed (attempt $count/$retries, exit code: $exit_code). Retrying in 5 seconds..."
-                  sleep 5
-                else
-                  handle_error "$step_name" "$exit_code" "Failed after $retries attempts"
-                  return $exit_code
-                fi
-              done
-              log "SUCCESS: ${step_name} completed successfully"
-              return 0
-            }
+            # # Kill existing Node.js process (if running)
+            # pkill -f "node index.js" || true
 
-            # Function to gracefully stop the app
-            stop_app() {
-              log "Attempting to stop existing application..."
-              
-              # Try graceful shutdown first (if your app supports SIGTERM)
-              if pgrep -f "node index.js" > /dev/null; then
-                log "Found running process. Attempting graceful shutdown..."
-                pkill -TERM -f "node index.js" || true
-                
-                # Wait for graceful shutdown
-                for i in {1..10}; do
-                  if ! pgrep -f "node index.js" > /dev/null; then
-                    log "Application stopped gracefully."
-                    return 0
-                  fi
-                  sleep 1
-                done
-                
-                # Force kill if graceful shutdown failed
-                log "Graceful shutdown failed. Force killing..."
-                pkill -KILL -f "node index.js" || true
-                sleep 2
-              else
-                log "No existing process found."
-              fi
-            }
+            # # Wait a moment for process to fully stop
+            # sleep 2
 
-            # Main deployment process
-            log "Starting deployment process..."
+            # # Start the application in background
+            # nohup node index.js > app.log 2>&1 &
 
-            # Check if directory exists
-            log "STEP 1: Checking if directory exists..."
-            if [ ! -d "~/Backend_ISW" ]; then
-              handle_error "DIRECTORY_CHECK" "1" "Directory ~/Backend_ISW does not exist"
-            else
-              log "✅ Directory exists"
-            fi
+            # # Wait and check if process started
+            # sleep 3
+            # if pgrep -f "node index.js" > /dev/null; then
+            #   echo "App started successfully!"
+            #   # Optional: Add health check if your app has an endpoint
+            #   # curl -f http://localhost:3000/health || echo "Health check failed"
+            # else
+            #   echo "Failed to start app. Check app.log for errors."
+            #   tail -10 app.log
+            # fi
 
-            # Navigate to app directory
-            log "STEP 2: Navigating to application directory..."
-            if ! cd ~/Backend_ISW; then
-              handle_error "DIRECTORY_NAVIGATION" "$?" "Failed to navigate to ~/Backend_ISW"
-            else
-              log "✅ Successfully navigated to $(pwd)"
-            fi
-
-            # Backup current state (optional but recommended)
-            log "STEP 3: Creating backup of current state..."
-            if git stash push -m "Pre-deploy backup $(date)"; then
-              log "✅ Backup created successfully"
-            else
-              log "⚠️  Warning: Git stash failed (might be clean working directory)"
-            fi
-
-            # Switch to master branch with retry
-            log "STEP 4: Switching to master branch..."
-            if ! retry 3 "GIT_CHECKOUT" git checkout master; then
-              handle_error "GIT_CHECKOUT" "$?" "Failed to checkout master branch after retries"
-            fi
-
-            # Pull latest changes with retry
-            log "STEP 5: Pulling latest changes..."
-            if ! retry 3 "GIT_PULL" git pull origin master; then
-              log "Git pull failed, attempting reset to origin/master..."
-              if git fetch origin && git reset --hard origin/master; then
-                log "✅ Successfully reset to origin/master"
-              else
-                handle_error "GIT_OPERATIONS" "$?" "Both git pull and reset failed"
-              fi
-            fi
-
-            # Check if package.json exists
-            log "STEP 6: Checking for package.json..."
-            if [ ! -f "package.json" ]; then
-              handle_error "PACKAGE_JSON_CHECK" "1" "package.json not found in $(pwd)"
-              log "Directory contents:"
-              ls -la || log "Could not list directory contents"
-            else
-              log "✅ package.json found"
-            fi
-
-            # Install dependencies with retry
-            log "STEP 7: Installing/updating dependencies..."
-            if ! retry 3 "NPM_CI" npm ci --production --no-audit; then
-              log "npm ci failed, trying npm install..."
-              if ! retry 3 "NPM_INSTALL" npm install --production --no-audit; then
-                handle_error "NPM_OPERATIONS" "$?" "Both npm ci and npm install failed"
-              fi
-            fi
-
-            # Stop existing application
-            log "STEP 8: Stopping existing application..."
-            stop_app
-
-            # Verify main file exists
-            log "STEP 9: Checking for main application file..."
-            if [ ! -f "index.js" ]; then
-              handle_error "INDEX_JS_CHECK" "1" "index.js not found in $(pwd)"
-              log "Directory contents:"
-              ls -la || log "Could not list directory contents"
-            else
-              log "✅ index.js found"
-            fi
-
-            # Start the application
-            log "STEP 10: Starting application..."
-            if nohup node index.js > app.log 2>&1 & then
-              APP_PID=$!
-              log "✅ Started application with PID: $APP_PID"
-            else
-              handle_error "APP_START" "$?" "Failed to start application"
-            fi
-
-            # Wait and verify startup
-            log "STEP 11: Verifying application startup..."
-            sleep 5
-
-            # Check if process is still running
-            if [ -n "$APP_PID" ] && kill -0 $APP_PID 2>/dev/null; then
-              log "✅ Process is running with PID: $APP_PID"
-            else
-              handle_error "PROCESS_CHECK" "1" "Process died immediately after start or PID not set"
-              log "Last 20 lines of app.log:"
-              tail -20 app.log 2>/dev/null || log "Could not read app.log"
-            fi
-
-            # Additional health checks
-            log "STEP 12: Final health verification..."
-            sleep 3
-            if pgrep -f "node index.js" > /dev/null; then
-              log "✅ Application is running successfully!"
-              
-              # Optional: HTTP health check (uncomment and modify URL as needed)
-              # log "Performing HTTP health check..."
-              # if curl -f -m 10 http://localhost:3000/health >/dev/null 2>&1; then
-              #   log "✅ Health check passed!"
-              # else
-              #   log "⚠️  Health check failed, but app is running"
-              # fi
-              
-              # Show last few log lines for verification
-              log "Last 5 lines of application log:"
-              tail -5 app.log 2>/dev/null || log "Could not read recent logs"
-              
-            else
-              handle_error "FINAL_CHECK" "1" "Application not found running after startup verification"
-              log "Last 20 lines of app.log:"
-              tail -20 app.log 2>/dev/null || log "Could not read app.log"
-            fi
-
-            # Final status report
-            if [ $DEPLOYMENT_FAILED -eq 0 ]; then
-              log "🎉 Deployment completed successfully!"
-              echo "DEPLOYMENT_STATUS=SUCCESS" >> $GITHUB_ENV || true
-            else
-              log "💥 Deployment encountered errors!"
-              echo "DEPLOYMENT_STATUS=FAILED" >> $GITHUB_ENV || true
-              echo -e "ERROR_SUMMARY<<EOF" >> $GITHUB_ENV || true
-              echo -e "$ERROR_DETAILS" >> $GITHUB_ENV || true
-              echo "EOF" >> $GITHUB_ENV || true
-              
-              # Still try to show system info for debugging
-              log "=== DEBUGGING INFO ==="
-              log "Current directory: $(pwd)"
-              log "User: $(whoami)"
-              log "Node version: $(node --version 2>/dev/null || echo 'Node not found')"
-              log "NPM version: $(npm --version 2>/dev/null || echo 'NPM not found')"
-              log "Git status:"
-              git status --porcelain 2>/dev/null || log "Git status failed"
-              log "Running processes:"
-              pgrep -f "node" | head -5 || log "No node processes found"
-              log "Directory contents:"
-              ls -la | head -10 || log "Could not list directory"
-              log "===================="
-              
-              exit 1
-            fi
-
-      - name: Deployment Status
-        if: always()
-        run: |
-          echo "=== DEPLOYMENT SUMMARY ==="
-          if [ "${{ steps.deploy_step.outcome }}" == "success" ] && [ "${{ env.DEPLOYMENT_STATUS }}" == "SUCCESS" ]; then
-            echo "🎉 Status: DEPLOYMENT SUCCESSFUL"
-            echo "✅ All steps completed without errors"
-          else
-            echo "💥 Status: DEPLOYMENT FAILED"
-            echo "❌ SSH Step Outcome: ${{ steps.deploy_step.outcome }}"
-            echo "❌ Deployment Status: ${{ env.DEPLOYMENT_STATUS }}"
-            
-            if [ -n "${{ env.ERROR_SUMMARY }}" ]; then
-              echo ""
-              echo "🔍 DETAILED ERROR ANALYSIS:"
-              echo "${{ env.ERROR_SUMMARY }}"
-            fi
-            
-            echo ""
-            echo "🛠️  TROUBLESHOOTING STEPS:"
-            echo "1. Check SSH connection: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }}"
-            echo "2. Verify directory exists: ls -la ~/Backend_ISW"
-            echo "3. Check git status: cd ~/Backend_ISW && git status"
-            echo "4. Test Node.js: node --version && npm --version"
-            echo "5. Review application logs: tail -50 ~/Backend_ISW/app.log"
-            echo ""
-            
-            exit 1
-          fi
-          echo "=========================="
+            echo "Hello World" > test.txt
