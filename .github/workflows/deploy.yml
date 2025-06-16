@@ -2,7 +2,7 @@ name: Deploy Node.js App 2 (Simple)
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -22,10 +22,13 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # # Navigate to your app directory
-            # cd ~/backend-ISW
+            # cd ~/Backend_ISW
+
+            # # Change to master branch
+            # git checkout master || echo "Fail change to master"
 
             # # Pull latest changes
-            # git pull origin main
+            # git pull origin master
 
             # # Install/update dependencies
             # npm install --production
