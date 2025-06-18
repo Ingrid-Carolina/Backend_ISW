@@ -1,5 +1,4 @@
-name: Deploy Node.js App 3
-
+name: Deploy Node.js App 2 (Enhanced)
 on:
   push:
     branches: [master]
@@ -8,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,41 +18,55 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          timeout: 1200 # ⬅️ total SSH session timeout (20 min)
-          command_timeout: 600 # ⬅️ max time per command (10 min)
           script: |
             # Navigate to your app directory
             cd ~/Backend_ISW
 
             # Pull latest changes
+            echo "📥 Pulling latest changes..."
             git pull origin master
 
-            # Change to master branch
-            git checkout master || echo "Fail change to master"
+            # Ensure we're on master branch
+            git checkout master || echo "⚠️  Failed to switch to master branch"
 
             # Install/update dependencies
-            npm install 
+            echo "📦 Installing dependencies..."
+            npm install
 
-            # Copy Env file into the file
+            # Copy environment file
+            echo "⚙️  Copying environment file..."
             cp ../env/.env .env
 
-            # Kill existing Node.js process (if running)
-            pkill -f "node index.js" || true
-
-            # Wait a moment for process to fully stop
-            sleep 2
+            # Kill existing Node.js process gracefully
+            echo "🛑 Stopping existing application..."
+            if pgrep -f "node index.js" > /dev/null; then
+              pkill -f "node index.js"
+              echo "Waiting for process to stop..."
+              sleep 3
+              # Force kill if still running
+              pkill -9 -f "node index.js" 2>/dev/null || true
+            else
+              echo "No existing process found"
+            fi
 
             # Start the application in background
+            echo "🚀 Starting application..."
             nohup node index.js > app.log 2>&1 &
 
-            # Wait and check if process started
-            sleep 3
-
+            # Wait and verify startup
+            sleep 5
             if pgrep -f "node index.js" > /dev/null; then
-              echo "App started successfully!"
-              # Optional: Add health check if your app has an endpoint
-              # curl -f http://localhost:3000/health || echo "Health check failed"
+              echo "✅ App started successfully!"
+              echo "📊 Process info:"
+              pgrep -f "node index.js" | head -1 | xargs ps -p
+              
+              # Optional: Add health check
+              # echo "🏥 Running health check..."
+              # curl -f http://localhost:3000/health || echo "⚠️  Health check failed"
             else
-              echo "Failed to start app. Check app.log for errors."
-              tail -10 app.log
+              echo "❌ Failed to start app. Check logs:"
+              tail -20 app.log
+              exit 1
             fi
+
+            echo "🎉 Deployment completed successfully!"
