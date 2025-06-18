@@ -2,15 +2,17 @@ import nodemailer from 'nodemailer';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function enviarCorreoConfirmacion(datos) {
-  const templatePath = path.join(__dirname, '../templates/correo-confirmacion.html');
-  let html = await readFile(templatePath, 'utf-8');
+	const templatePath = path.join(__dirname, '../templates/correo-confirmacion.html');
+	let html = await readFile(templatePath, 'utf-8');
 
-	// Reemplazo de variables en la plantilla
 	html = html
 		.replace(/{{nombre}}/g, datos.nombre)
 		.replace(/{{apellido}}/g, datos.apellido)
@@ -24,26 +26,24 @@ async function enviarCorreoConfirmacion(datos) {
 		.replace(/{{enlace_telefono}}/g, 'tel:+504 9918-2456')
 		.replace(/{{enlace_sitio}}/g, 'https://pilotos-baseball.com');
 
-	// Configura el transporter (reemplaza los valores si no usas .env)
 	const transporter = nodemailer.createTransport({
-		service: 'gmail',
+		service: process.env.EMAIL_SERVICE,
 		auth: {
-			user: 'alexander.e2018@gmail.com',
-			pass: 'npcm osbb ebhd pfow',
+			user: process.env.EMAIL_USER,
+			pass: process.env.EMAIL_PASS,
 		},
 	});
 
-	// Configura el mensaje
 	const mailOptions = {
-		from: '"Pilotos FAH" <alexander.e2018@gmail.com>',
+		from: `"Pilotos FAH" <${process.env.EMAIL_USER}>`,
 		to: datos.email,
 		subject: 'Confirmación de envío de formulario - Pilotos FAH',
 		html: html,
 	};
 
-	// Envía el correo
 	await transporter.sendMail(mailOptions);
 	console.log('Correo de confirmación enviado a:', datos.email);
 }
 
 export default enviarCorreoConfirmacion;
+
