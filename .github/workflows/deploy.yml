@@ -1,4 +1,4 @@
-name: Deploy Node.js App 2 (Simple)
+name: Deploy Node.js App 3
 
 on:
   push:
@@ -20,6 +20,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          timeout: 1200 # ⬅️ total SSH session timeout (20 min)
+          command_timeout: 600 # ⬅️ max time per command (10 min)
           script: |
             # Navigate to your app directory
             cd ~/Backend_ISW
@@ -36,16 +38,16 @@ jobs:
             # Copy Env file into the file
             cp ../env/.env .env
 
-            # # Kill existing Node.js process (if running)
+            # Kill existing Node.js process (if running)
             pkill -f "node index.js" || true
 
-            # # Wait a moment for process to fully stop
+            # Wait a moment for process to fully stop
             sleep 2
 
-            # # Start the application in background
+            # Start the application in background
             nohup node index.js > app.log 2>&1 &
 
-            # # Wait and check if process started
+            # Wait and check if process started
             sleep 3
 
             if pgrep -f "node index.js" > /dev/null; then
