@@ -1,12 +1,16 @@
 import axios from "axios";
 import auth from "../config/firebase.js";
-import {sql} from '../config/postgre.js';
+import { sql } from "../config/postgre.js";
+import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
 //import { sql } from "./postgre.js";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification } from "firebase/auth";
-
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  sendEmailVerification,
+} from "firebase/auth";
 
 class AuthController {
-
   // Funcion para registrar usuario
   static async registrarUsuario(req, res) {
     const { email, password, nombre } = req.body;
@@ -50,39 +54,42 @@ class AuthController {
   }
 
   // Funcion para autenticar el usuario existente
- static async loginUsuario(req, res) {
+  static async loginUsuario(req, res) {
     const { email, password } = req.body;
-
 
     let intentos_fallidos = 0;
 
     const user = auth.currentUser;
 
     if (user) {
-        return res.status(401).send({ mensaje: "Ya hay cuenta iniciada: " + user.email });
+      return res
+        .status(401)
+        .send({ mensaje: "Ya hay cuenta iniciada: " + user.email });
     }
 
     try {
-        const userCredentials = await signInWithEmailAndPassword(auth, email, password);
-        const idToken = await userCredentials.user.getIdToken();
+      const userCredentials = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const idToken = await userCredentials.user.getIdToken();
 
-        return res.status(200).send({
-            mensaje: "Sesión iniciada correctamente",
-            token: idToken
-        });
-
+      return res.status(200).send({
+        mensaje: "Sesión iniciada correctamente",
+        token: idToken,
+      });
     } catch (err) {
-
-        /*intentos_fallidos +=1;
+      /*intentos_fallidos +=1;
          if (intentos_fallidos >= 4) {
         return res.status(400).send({ mensaje: "Has excedido el número máximo de intentos. Intenta más tarde." });
     }*/
 
-        return res.status(400).send({ mensaje: "Error al iniciar sesión: " + err });
-        
+      return res
+        .status(400)
+        .send({ mensaje: "Error al iniciar sesión: " + err });
     }
-}
-  
+  }
 
   //Funcion para sign out el usuario
   static async signOutUsuario(req, res) {
@@ -123,20 +130,17 @@ class AuthController {
             )
         `;
 
-        // Enviar correo de confirmación
-		await enviarCorreoConfirmacion({
-			email,
-			nombre,
-			apellido,
-			telefono,
-			direccion,
-			proposito,
-			mensaje,
-		});
-
-       
-
-
+      // Enviar correo de confirmación
+      await enviarCorreoConfirmacion({
+        email,
+        nombre,
+        apellido,
+        telefono,
+        direccion,
+        proposito,
+        mensaje,
+      });
+      res.status(201).send({ mensaje: "Formulario enviado correctamente." });
     } catch (error) {
       console.error("Database error:", error);
       res.status(500).send({
@@ -162,7 +166,7 @@ class AuthController {
 
 
             const response = await axios.post(
-                `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+                https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY},
                 {
                     email: userEmail,
                     password: userPass,
@@ -195,7 +199,7 @@ class AuthController {
             //Si todo sale bien
 
         } catch (e) {
-            res.status(500).json({ error: `Ocurrio un error ${e}` });
+            res.status(500).json({ error: Ocurrio un error ${e} });
         }
         
         */
@@ -210,7 +214,6 @@ class AuthController {
     try {
       const { nombreproducto, cantidad } = req.body;
 
-     
       const producto = await sql`
     SELECT idproducto FROM Productos WHERE nombre_producto = ${nombreproducto}
 `;
@@ -225,23 +228,20 @@ class AuthController {
     VALUES (${producto[0].idproducto}, ${cantidad}, ${user.email})
 `;
 
-      await sql `UPDATE Productos SET cantidad=cantidad-${cantidad} WHERE nombre_producto = ${nombreproducto}`;
+      await sql`UPDATE Productos SET cantidad=cantidad-${cantidad} WHERE nombre_producto = ${nombreproducto}`;
 
       res.status(201).send({
-
-        mensaje: 'Compra exitosa'
-      })
+        mensaje: "Compra exitosa",
+      });
     } catch (error) {
-       
-        console.error("Database error:", error);
+      console.error("Database error:", error);
       res.status(500).send({
         mensaje:
           "Hubo un problema al realizar su compra, inténtalo nuevamente.",
         error: error.message,
       });
-
     }
   }
 }
 
-export default AuthController;
+export default AuthController;
