@@ -33,6 +33,9 @@ jobs:
             # Install/update dependencies
             npm install 
 
+            # Copy Env file into the file
+            cp ../env/.env ./.env
+
             # # Kill existing Node.js process (if running)
             # pkill -f "node index.js" || true
 

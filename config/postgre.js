@@ -1,17 +1,19 @@
+import dotenv from "dotenv";
+dotenv.config();
+import postgres from "postgres";
 
-import postgres from 'postgres';
-const db_url = 'postgresql://neondb_owner:npg_Jzlc0fubd8eO@ep-dawn-poetry-a5ci8v07-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require'
+const db_url = process.env.POSTGRESQL_URL;
+console.log(db_url);
 
 const sql = postgres(db_url); // Define the connection once
 
 const dbConnect = async () => {
-    try {
-        console.log('La Base de datos se ha conectado correctamente');
-        const version = await sql`SELECT version()`;
-        console.log(version);
+  try {
+    const version = await sql`SELECT version()`;
+    console.log(version);
+    console.log("La Base de datos se ha conectado correctamente");
 
-
-        /* await sql`
+    /* await sql`
              CREATE TABLE IF NOT EXISTS Usuarios (
                  id VARCHAR(100) PRIMARY KEY,
                  nombre VARCHAR(100) NOT NULL,
@@ -35,12 +37,9 @@ const dbConnect = async () => {
              RETURNING *
          `;
          console.log('Usuario insertado:', inserted);*/
-
-    } catch (err) {
-        console.log('Error en la base de datos:', err);
-    }
+  } catch (err) {
+    console.log("Error en la base de datos:", err);
+  }
 };
 
 export { dbConnect, sql };
-
-
