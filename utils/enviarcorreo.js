@@ -27,7 +27,10 @@ async function enviarCorreoConfirmacion(datos) {
 		.replace(/{{enlace_sitio}}/g, 'https://pilotos-baseball.com');
 
 	const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
 		service: process.env.EMAIL_SERVICE,
+        secure: false,
 		auth: {
 			user: process.env.EMAIL_USER,
 			pass: process.env.EMAIL_PASS,
