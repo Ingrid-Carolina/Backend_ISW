@@ -34,24 +34,25 @@ jobs:
             npm install 
 
             # Copy Env file into the file
-            cp ../env/.env ./.env
+            cp ../env/.env /.env
 
             # # Kill existing Node.js process (if running)
-            # pkill -f "node index.js" || true
+            pkill -f "node index.js" || true
 
             # # Wait a moment for process to fully stop
-            # sleep 2
+            sleep 2
 
             # # Start the application in background
-            # nohup node index.js > app.log 2>&1 &
+            nohup node index.js > app.log 2>&1 &
 
             # # Wait and check if process started
-            # sleep 3
-            # if pgrep -f "node index.js" > /dev/null; then
-            #   echo "App started successfully!"
-            #   # Optional: Add health check if your app has an endpoint
-            #   # curl -f http://localhost:3000/health || echo "Health check failed"
-            # else
-            #   echo "Failed to start app. Check app.log for errors."
-            #   tail -10 app.log
-            # fi
+            sleep 3
+
+            if pgrep -f "node index.js" > /dev/null; then
+              echo "App started successfully!"
+              # Optional: Add health check if your app has an endpoint
+              # curl -f http://localhost:3000/health || echo "Health check failed"
+            else
+              echo "Failed to start app. Check app.log for errors."
+              tail -10 app.log
+            fi
