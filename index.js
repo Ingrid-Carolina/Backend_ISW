@@ -22,5 +22,5 @@ app.use('/auth', router);
 const PORT = 3000;
 
 app.listen(PORT,'0.0.0.0', () => {
-    console.log(`Listening on http://167.99.158.234:${PORT}`);
+    console.log(`Listening on http://localhost:${PORT}`);
 });
