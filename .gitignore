@@ -49,3 +49,5 @@ coverage/
 
 # Test output
 test-output/
+config\admin.json
+config/admin.json

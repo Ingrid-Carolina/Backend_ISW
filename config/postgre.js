@@ -3,7 +3,6 @@ dotenv.config();
 import postgres from "postgres";
 
 const db_url = process.env.POSTGRESQL_URL;
-console.log(db_url);
 
 const sql = postgres(db_url); // Define the connection once
 

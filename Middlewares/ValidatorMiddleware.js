@@ -20,3 +20,72 @@ export const SignInValidator = [
     }
 ];
 
+export const RegistrarFormularioValidator = [
+    check("email").exists().notEmpty().withMessage('Email es requerido.'),
+    check("password").exists().notEmpty().withMessage('Password es requerido.'),
+    (req, res, next) => {
+        validateResult(req, res, next);
+    }
+];
+
+export const ContactFormValidator = [
+	check('nombre')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('El nombre es obligatorio.')
+		.isLength({ min: 2 }).withMessage('Mínimo 2 caracteres.')
+		.matches(/^[A-Za-zÀ-ÿ\s]+$/).withMessage('Solo letras permitidas.'),
+
+	check('apellido')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('El apellido es obligatorio.')
+		.isLength({ min: 2 }).withMessage('Mínimo 2 caracteres.')
+		.matches(/^[A-Za-zÀ-ÿ\s]+$/).withMessage('Solo letras permitidas.'),
+
+	check('email')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('El correo es obligatorio.')
+		.isEmail().withMessage('Correo inválido.')
+		.matches(/@(gmail\.com|outlook\.com|hotmail\.com)$/i)
+		.withMessage('Solo se permiten correos de Gmail, Outlook o Hotmail.'),
+
+	check('telefono')
+		.notEmpty().withMessage('El teléfono es obligatorio.')
+		.isNumeric().withMessage('Solo números.')
+		.isLength({ min: 8, max: 15 }).withMessage('Entre 8 y 15 dígitos.'),
+
+	check('direccion')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('La dirección es obligatoria.')
+		.isLength({ min: 5 }).withMessage('Mínimo 5 caracteres.'),
+
+	check('mensaje')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('El mensaje es obligatorio.')
+		.isLength({ min: 10, max: 500 }).withMessage('Entre 10 y 500 caracteres.'),
+
+	check('proposito')
+  .isArray({ min: 1 }).withMessage('Debes seleccionar al menos una opción')
+  .custom(arr => {
+    const opcionesValidas = [
+      'Donación',
+      'Donación de Indumentaria/Equipo',
+      'Patrocinio',
+      'Asociación',
+      'Voluntariado',
+      'Otros',
+    ];
+    return arr.every(item => opcionesValidas.includes(item));
+  }).withMessage('Contiene una opción no válida'),
+
+   (req, res, next) => {
+        validateResult(req, res, next);
+    }
+
+
+];
+
