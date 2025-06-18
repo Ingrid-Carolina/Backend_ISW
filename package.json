@@ -21,6 +21,7 @@
     "express-validator": "^7.2.1",
     "firebase": "^11.9.1",
     "firebase-admin": "^13.4.0",
+    "nodemailer": "^7.0.3",
     "postgres": "^3.4.7"
   },
   "devDependencies": {

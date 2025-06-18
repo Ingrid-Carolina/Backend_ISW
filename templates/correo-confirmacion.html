@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulario Recibido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-template {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .email-header {
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+        }
+
+        .pilotos-logo {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: #0c005a;
+            margin-bottom: 10px;
+        }
+
+        .email-title {
+            font-size: 24px;
+            color: #0c005a;
+            margin: 0;
+        }
+
+        .email-subtitle {
+            color: #555;
+            margin-top: 8px;
+            font-size: 16px;
+        }
+
+        .email-body {
+            margin-top: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .greeting {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .purchase-details {
+            margin-top: 15px;
+            background: #f1f5fb;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .purchase-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ddd;
+            padding: 6px 0;
+        }
+
+        .content-text {
+            margin-top: 15px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            margin-top: 20px;
+            background: #0c005a;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .email-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .social-links {
+            margin: 10px 0;
+        }
+
+        .social-link {
+            margin: 0 8px;
+            font-size: 18px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-template">
+        <div class="email-header">
+            <div class="logo-section">
+                <div class="pilotos-logo">LOGO PILOTOS</div>
+            </div>
+            <h1 class="email-title">¡Hemos Recibido tu Formulario!</h1>
+            <p class="email-subtitle">
+                Gracias por ponerte en contacto con Pilotos FAH
+            </p>
+        </div>
+
+        <div class="email-body">
+            <div class="greeting">¡Hola {{nombre}}!</div>
+
+            <div class="content-text">
+                Te confirmamos que tu solicitud ha sido recibida correctamente.
+                Nuestro equipo la revisará y se pondrá en contacto contigo en un plazo
+                de
+                <strong>24–48 horas hábiles</strong>.
+            </div>
+
+            <div class="content-text">
+                <strong>Resumen de tu mensaje:</strong>
+            </div>
+
+            <div class="purchase-details">
+                <div class="purchase-item">
+                    <span>Nombre Completo:</span><span>{{nombre}} {{apellido}}</span>
+                </div>
+                <div class="purchase-item">
+                    <span>Teléfono:</span><span>{{telefono}}</span>
+                </div>
+                <div class="purchase-item">
+                    <span>Correo Electrónico:</span><span>{{correo}}</span>
+                </div>
+                <div class="purchase-item">
+                    <span>Dirección:</span><span>{{direccion}}</span>
+                </div>
+                <div class="purchase-item">
+                    <span>Propósito:</span><span>{{proposito}}</span>
+                </div>
+            </div>
+
+            <div class="content-text">
+                <strong>Tu mensaje:</strong><br />
+                <em>{{mensaje}}</em>
+            </div>
+
+            <div class="content-text">
+                Mientras tanto, puedes visitar nuestro sitio para conocer más sobre
+                las actividades de la Asociación.
+            </div>
+
+            <div style="text-align: center">
+                <a href="https://pilotosbaseball.netlify.app/" class="cta-button">Visitar Sitio</a>
+            </div>
+        </div>
+
+        <div class="email-footer">
+            <div class="footer-text">¡Potencia tu juego, alcanza el cielo!</div>
+            <div class="social-links">
+                <a href="{{enlace_email}}" class="social-link">📧</a>
+                <a href="{{enlace_telefono}}" class="social-link">📱</a>
+                <a href="{{enlace_sitio}}" class="social-link">🌐</a>
+            </div>
+            <div class="contact-info">
+                Asociación de Béisbol Menor Pilotos FAH<br />
+                Email: pilotoshn@outlook.com' | Tel: +504 9918-2456
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

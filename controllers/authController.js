@@ -1,6 +1,7 @@
 import axios from "axios";
 import auth from "../config/firebase.js";
 import {sql} from '../config/postgre.js';
+import enviarCorreoConfirmacion from '../utils/enviarcorreo.js';
 //import { sql } from "./postgre.js";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification } from "firebase/auth";
 
@@ -110,6 +111,17 @@ class AuthController {
                 ${mensaje}
             )
         `;
+
+        // Enviar correo de confirmación
+		await enviarCorreoConfirmacion({
+			email,
+			nombre,
+			apellido,
+			telefono,
+			direccion,
+			proposito,
+			mensaje,
+		});
 
         res.status(201).send({ mensaje: "Formulario enviado correctamente." });
 

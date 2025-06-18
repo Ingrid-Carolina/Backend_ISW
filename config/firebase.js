@@ -4,12 +4,12 @@ import { initializeApp } from "firebase/app"; //inicializamos sesion en firebase
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID
+  apiKey: "AIzaSyDP3_xeF1iE-94f_1bUWwddfud9GLo0qqM",
+  authDomain: "proyecto-isw1.firebaseapp.com",
+  projectId: "proyecto-isw1",
+  storageBucket: "proyecto-isw1.firebasestorage.app",
+  messagingSenderId: "174582526082",
+  appId: "1:174582526082:web:4e35f62afbdcb595d8849b"
 };
 
 const app = initializeApp(firebaseConfig);
