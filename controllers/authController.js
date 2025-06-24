@@ -59,35 +59,40 @@ class AuthController {
 
     try {
       // 1. Iniciar sesión con Firebase
-      const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+      const userCredentials = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const idToken = await userCredentials.user.getIdToken();
 
       // 2. Buscar el rol en la base de datos PostgreSQL
-      const result = await sql`SELECT rol FROM Usuarios WHERE email = ${email}`;
+      const result =
+        await sql`SELECT rol, nombre FROM Usuarios WHERE email = ${email}`;
 
       if (result.length === 0) {
-        return res.status(404).send({ mensaje: "Usuario no encontrado en la base de datos" });
+        return res
+          .status(404)
+          .send({ mensaje: "Usuario no encontrado en la base de datos" });
       }
 
-      const rol = result[0].rol;
+      const { rol, nombre } = result[0];
 
-      // 3. Devolver también el rol junto al token
       return res.status(200).send({
         mensaje: "Sesión iniciada correctamente",
         token: idToken,
         usuario: {
           email,
           rol,
+          nombre,
         },
       });
-
     } catch (err) {
       return res
         .status(400)
         .send({ mensaje: "Error al iniciar sesión: " + err.message });
     }
   }
-
 
   //Funcion para sign out el usuario
   static async signOutUsuario(req, res) {
@@ -242,4 +247,4 @@ class AuthController {
   }
 }
 
-export default AuthController;
+export default AuthController;
