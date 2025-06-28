@@ -2,6 +2,8 @@ import axios from "axios";
 import auth from "../config/firebase.js";
 import { sql } from "../config/postgre.js";
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+
 //import { sql } from "./postgre.js";
 import {
   createUserWithEmailAndPassword,
@@ -149,6 +151,30 @@ class AuthController {
       res.status(500).send({
         mensaje:
           "Hubo un problema al registrar el formulario, inténtalo nuevamente.",
+        error: error.message,
+      });
+    }
+  }
+
+  static async ResetPassword(req, res) {
+    const auth = getAuth();
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ mensaje: "El email no puede estar vacío" });
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return res
+        .status(200)
+        .json({
+          mensaje:
+            "El correo para restablecer la contraseña ha sido enviado exitosamente",
+        });
+    } catch (error) {
+      return res.status(500).json({
+        mensaje: "Hubo un problema al enviar el correo, inténtalo nuevamente.",
         error: error.message,
       });
     }

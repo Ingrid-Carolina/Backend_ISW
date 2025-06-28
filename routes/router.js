@@ -9,6 +9,7 @@ router.post('/signin', SignInValidator, AuthController.loginUsuario);
 router.post('/signout', AuthController.signOutUsuario);
 router.post('/registrarformulario', ContactFormValidator, AuthController.registrarformulario);
 router.post('/comprar', AuthController.realizarcompra);
+router.post('/restablecer', AuthController.ResetPassword);
 //router.post('/agregarproducto');
 //router.post('/login', (req, res) => authController.login(req, res));
 
