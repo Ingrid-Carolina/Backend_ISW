@@ -4,7 +4,6 @@ import { sql } from "../config/postgre.js";
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
-
 //import { sql } from "./postgre.js";
 import {
   createUserWithEmailAndPassword,
@@ -234,7 +233,7 @@ class AuthController {
 
   static async captcha(req, res) {
     const { token } = req.body;
-      const secret = process.env.RECAPTCHA_SECRET;
+    const secret = process.env.RECAPTCHA_SECRET;
 
     try {
       const response = await axios.post(
@@ -260,34 +259,66 @@ class AuthController {
     }
   }
 
+  //Funcion para registrar Eventos
 
-//Funcion para registrar Eventos
+  static async registrarEvento(req, res) {
+    const { nombre, fecha_inicio, descripcion, fecha_final } = req.body;
 
-static async registrarEvento(req, res) {
-  const { nombre, fecha_inicio, descripcion, fecha_final } = req.body;
-
-  try {
-    const result = await sql`
+    try {
+      const result = await sql`
       SELECT * FROM evento_valido(${nombre}, ${fecha_inicio}, ${fecha_final}, ${descripcion})
     `;
 
-    const { exito, mensaje } = result[0];
+      const { exito, mensaje } = result[0];
 
-    if (exito) {
-      res.status(201).send({ mensaje });
-    } else {
-      res.status(400).send({ mensaje });
+      if (exito) {
+        res.status(201).send({ mensaje });
+      } else {
+        res.status(400).send({ mensaje });
+      }
+    } catch (error) {
+      console.error("Error al registrar evento:", error);
+
+      res.status(500).send({
+        mensaje: "Error interno al registrar el evento",
+        detalle: error.message || error.toString(),
+      });
     }
-  } catch (error) {
-    console.error('Error al registrar evento:', error);
-
-    res.status(500).send({
-      mensaje: 'Error interno al registrar el evento',
-      detalle: error.message || error.toString()
-    });
   }
-}
 
+  static async obtenerEventos(req, res) {
+    try {
+      const eventos = await sql`
+      SELECT id, nombre, descripcion, fecha_inicio, fecha_final
+      FROM Eventos
+      ORDER BY fecha_inicio
+    `;
+
+      res.status(200).json(eventos);
+    } catch (error) {
+      console.error("Error al obtener eventos:", error);
+      res
+        .status(500)
+        .send({ mensaje: "Error al obtener eventos", error: error.message });
+    }
+  }
+
+  static async eliminarEvento(req, res) {
+    const { id } = req.params;
+
+    try {
+      const result = await sql`
+      DELETE FROM Eventos WHERE id = ${id}
+    `;
+
+      res.status(200).send({ mensaje: "Evento eliminado correctamente" });
+    } catch (error) {
+      console.error("Error al eliminar evento:", error);
+      res
+        .status(500)
+        .send({ mensaje: "Error al eliminar el evento", error: error.message });
+    }
+  }
 
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
@@ -328,6 +359,5 @@ static async registrarEvento(req, res) {
     }
   }
 }
-
 
 export default AuthController;
