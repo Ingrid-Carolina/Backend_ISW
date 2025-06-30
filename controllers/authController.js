@@ -4,6 +4,7 @@ import { sql } from "../config/postgre.js";
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
+
 //import { sql } from "./postgre.js";
 import {
   createUserWithEmailAndPassword,
@@ -166,12 +167,10 @@ class AuthController {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      return res
-        .status(200)
-        .json({
-          mensaje:
-            "El correo para restablecer la contraseña ha sido enviado exitosamente",
-        });
+      return res.status(200).json({
+        mensaje:
+          "El correo para restablecer la contraseña ha sido enviado exitosamente",
+      });
     } catch (error) {
       return res.status(500).json({
         mensaje: "Hubo un problema al enviar el correo, inténtalo nuevamente.",
@@ -233,30 +232,33 @@ class AuthController {
         
         */
 
-           static async captcha(req, res) {
+  static async captcha(req, res) {
+    const { token } = req.body;
+      const secret = process.env.RECAPTCHA_SECRET;
 
-           const {token} = req.body;
-     const secret = '6LeoJWErAAAAAPvsElXoWi8R8AWfW_okZ-S6ZsO_';
+    try {
+      const response = await axios.post(
+        `https://www.google.com/recaptcha/api/siteverify`,
+        null,
+        {
+          params: {
+            secret,
+            response: token,
+          },
+        }
+      );
 
-  try {
-    const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
-      params: {
-        secret,
-        response: token,
-      },
-    });
-
-    if (response.data.success) {
-      res.status(200).json({ success: true });
-    } else {
-      res.status(400).json({ success: false, errors: response.data['error-codes'] });
+      if (response.data.success) {
+        res.status(200).json({ success: true });
+      } else {
+        res
+          .status(400)
+          .json({ success: false, errors: response.data["error-codes"] });
+      }
+    } catch (error) {
+      res.status(500).json({ success: false, error: "Verification failed" });
     }
-  } catch (error) {
-    res.status(500).json({ success: false, error: 'Verification failed' });
   }
-};
-
-
 
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
