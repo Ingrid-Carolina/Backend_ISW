@@ -260,6 +260,35 @@ class AuthController {
     }
   }
 
+
+//Funcion para registrar Eventos
+
+static async registrarEvento(req, res) {
+  const { nombre, fecha_inicio, descripcion, fecha_final } = req.body;
+
+  try {
+    const result = await sql`
+      SELECT * FROM evento_valido(${nombre}, ${fecha_inicio}, ${fecha_final}, ${descripcion})
+    `;
+
+    const { exito, mensaje } = result[0];
+
+    if (exito) {
+      res.status(201).send({ mensaje });
+    } else {
+      res.status(400).send({ mensaje });
+    }
+  } catch (error) {
+    console.error('Error al registrar evento:', error);
+
+    res.status(500).send({
+      mensaje: 'Error interno al registrar el evento',
+      detalle: error.message || error.toString()
+    });
+  }
+}
+
+
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
     if (!user) {
@@ -299,5 +328,6 @@ class AuthController {
     }
   }
 }
+
 
 export default AuthController;
