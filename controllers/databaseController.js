@@ -1,5 +1,4 @@
 import {
-  sql,
   dbConnect,
   getEventById,
   createEvent,
@@ -78,7 +77,7 @@ class DatabaseController {
   async eliminarEvento(req, res) {
     const { id } = req.body;
     try {
-      await deleteEvent(id);
+      await deleteEventdisabled(id);
       res.status(200).send("Evento eliminado con éxito");
     } catch (error) {
       console.error("Error al eliminar el evento:", error);
@@ -87,4 +86,4 @@ class DatabaseController {
   }
 }
 
-export default new DatabaseController();
+export default DatabaseController;
