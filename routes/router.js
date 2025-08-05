@@ -14,6 +14,7 @@ router.post('/verificar', AuthController.captcha);
 router.post('/registrarevento', AuthController.registrarEvento);
 router.get('/obtenereventos', AuthController.obtenerEventos);
 router.delete('/evento/:id', AuthController.eliminarEvento);
+router.put('/evento/:id', AuthController.actualizarEvento);
 //router.post('/agregarproducto');
 //router.post('/login', (req, res) => authController.login(req, res));
 
