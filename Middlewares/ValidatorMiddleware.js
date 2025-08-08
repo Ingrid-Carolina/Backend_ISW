@@ -2,6 +2,7 @@ import { check } from 'express-validator';
 import { param } from 'express-validator';
 import validateResult from '../utils/handleValidator.js';
 import { sql } from '../config/postgre.js';
+import admin from '../config/firebase-admin.js';
 
 export const CreateUserValidator = [
     check("nombre").notEmpty().withMessage('El nombre no debe estar en blanco.'),
@@ -89,3 +90,36 @@ export const ContactFormValidator = [
 
 ];
 
+export const EditProfileValidator = [
+  check('nombre')
+    .notEmpty().withMessage('El nombre es obligatorio.')
+    .trim()
+    .escape()
+    .isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres.')
+    .matches(/^[A-Za-zÀ-ÿ\s]+$/).withMessage('El nombre solo puede contener letras.'),
+
+  (req, res, next) => {
+    validateResult(req, res, next);
+  }
+];
+
+const verificarToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no proporcionado o mal formado' });
+  }
+
+  const idToken = authHeader.split(' ')[1];
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.uid = decodedToken.uid;
+    next();
+  } catch (error) {
+    console.error('Error al verificar token:', error);
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+};
+
+export default verificarToken;

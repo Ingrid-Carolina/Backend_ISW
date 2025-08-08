@@ -3,6 +3,7 @@ import auth from "../config/firebase.js";
 import { sql } from "../config/postgre.js";
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+import admin from '../config/firebase-admin.js';
 
 //import { sql } from "./postgre.js";
 import {
@@ -323,21 +324,21 @@ class AuthController {
     }
   }
 
- static async actualizarEvento(req, res) {
-	const { id } = req.params;
-	let { nombre, fecha_inicio, fecha_final, descripcion } = req.body;
+  static async actualizarEvento(req, res) {
+    const { id } = req.params;
+    let { nombre, fecha_inicio, fecha_final, descripcion } = req.body;
 
-	try {
-		// Conversión segura a tipo Date
-		const inicio = new Date(fecha_inicio);
-		const final = new Date(fecha_final);
+    try {
+      // Conversión segura a tipo Date
+      const inicio = new Date(fecha_inicio);
+      const final = new Date(fecha_final);
 
-		// Validación mínima
-		if (isNaN(inicio.getTime()) || isNaN(final.getTime())) {
-			return res.status(400).send({ mensaje: "Fechas inválidas" });
-		}
+      // Validación mínima
+      if (isNaN(inicio.getTime()) || isNaN(final.getTime())) {
+        return res.status(400).send({ mensaje: "Fechas inválidas" });
+      }
 
-		const result = await sql`
+      const result = await sql`
 			UPDATE Eventos
 			SET nombre = ${nombre},
 				fecha_inicio = ${inicio.toISOString()},
@@ -347,24 +348,24 @@ class AuthController {
 			RETURNING id
 		`;
 
-		if (result.length === 0) {
-			return res.status(404).send({
-				mensaje: 'No se encontró el evento con ese ID',
-			});
-		}
+      if (result.length === 0) {
+        return res.status(404).send({
+          mensaje: 'No se encontró el evento con ese ID',
+        });
+      }
 
-		res.status(200).send({
-			mensaje: 'Evento actualizado correctamente',
-			id: result[0].id,
-		});
-	} catch (error) {
-		console.error('Error al actualizar evento:', error);
-		res.status(500).send({
-			mensaje: 'Error al actualizar el evento',
-			detalle: error.message,
-		});
-	}
-}
+      res.status(200).send({
+        mensaje: 'Evento actualizado correctamente',
+        id: result[0].id,
+      });
+    } catch (error) {
+      console.error('Error al actualizar evento:', error);
+      res.status(500).send({
+        mensaje: 'Error al actualizar el evento',
+        detalle: error.message,
+      });
+    }
+  }
 
 
 
@@ -406,6 +407,79 @@ class AuthController {
       });
     }
   }
+
+  static async editarPerfil(req, res) {
+    const { nombre } = req.body;
+    const uid = req.uid;
+
+    try {
+      await sql`
+			UPDATE Usuarios
+			SET nombre = ${nombre}
+			WHERE id = ${uid}
+		`;
+
+      return res.status(200).json({ mensaje: "Nombre actualizado correctamente" });
+
+    } catch (error) {
+      console.error("Error al actualizar nombre:", error);
+      res.status(500).json({ mensaje: "Error al actualizar nombre", error: error.message });
+    }
+  }
+
+  static async obtenerDatosUsuario(req, res) {
+    const uid = req.uid;
+
+    try {
+      const userRecord = await admin.auth().getUser(uid);
+      const email = userRecord.email;
+
+      const result = await sql`
+      SELECT nombre, email, password
+      FROM Usuarios
+      WHERE email = ${email}
+    `;
+
+      if (result.length === 0) {
+        return res.status(404).json({ mensaje: 'Usuario no encontrado en la base de datos' });
+      }
+
+      const { nombre, password } = result[0];
+
+      res.status(200).json({
+        nombre,
+        email,
+        password
+      });
+
+    } catch (error) {
+      console.error('Error al obtener datos del usuario:', error);
+      res.status(500).json({ mensaje: 'Error al obtener datos del usuario', error: error.message });
+    }
+  }
+
+  static async eliminarUsuarioAutenticado(req, res) {
+  try {
+    const uid = req.uid;
+
+    // Eliminar el usuario de Firebase Authentication
+    await admin.auth().deleteUser(uid);
+
+    // Eliminar el usuario de tu base de datos PostgreSQL
+    await sql`DELETE FROM usuarios WHERE id = ${uid}`;
+
+    return res.status(200).json({ mensaje: 'Usuario eliminado correctamente.' });
+  } catch (error) {
+    console.error('Error al eliminar usuario:', error);
+
+    // Manejar error específico si el usuario no existe en Firebase
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({ error: 'Usuario no encontrado en Firebase.' });
+    }
+
+    return res.status(500).json({ error: 'Error al eliminar el usuario.' });
+  }
 }
 
+}
 export default AuthController;
