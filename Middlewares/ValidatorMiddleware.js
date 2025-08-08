@@ -104,16 +104,14 @@ export const EditProfileValidator = [
 ];
 
 const verificarToken = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies.token;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Token no proporcionado o mal formado' });
+  if (!token) {
+    return res.status(401).json({ error: 'Token no proporcionado en la cookie' });
   }
 
-  const idToken = authHeader.split(' ')[1];
-
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await admin.auth().verifyIdToken(token);
     req.uid = decodedToken.uid;
     next();
   } catch (error) {
@@ -121,5 +119,6 @@ const verificarToken = async (req, res, next) => {
     return res.status(401).json({ error: 'Token inválido' });
   }
 };
+
 
 export default verificarToken;
