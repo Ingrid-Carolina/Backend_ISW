@@ -1,26 +1,35 @@
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
 dotenv.config();
 
-import express from 'express'
-import router from './routes/router.js';
+import express from 'express';
 import cors from 'cors';
-import { dbConnect } from './config/postgre.js';
-//import router2 from './auth.js'; //importe mis http promises como router 2
+import cookieParser from 'cookie-parser';
+import { dbConnect } from './config/postgre.js'; 
+import router from './routes/router.js';
 import bodyParser from 'body-parser';
 
 const app = express();
 
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
+
+// Cookies HttpOnly
+app.use(cookieParser());
+
+// Parsers
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(express.json());
-app.use(cors());
-dbConnect();
 
+// DB
+dbConnect(); 
+
+// Rutas
 app.use('/auth', router);
 
 const PORT = 3000;
-
-app.listen(PORT,'0.0.0.0', () => {
-    console.log(`Listening on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Listening on http://localhost:${PORT}`);
 });

@@ -13,6 +13,17 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 
+const isProd = process.env.NODE_ENV === 'production';
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,       
+  sameSite: 'lax',      
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
+};
+
+
 class AuthController {
   // Funcion para registrar usuario
   static async registrarUsuario(req, res) {
@@ -81,14 +92,13 @@ class AuthController {
 
       const { rol, nombre } = result[0];
 
+      // 3. Guardar token en cookie HttpOnly segura
+      res.cookie("token", idToken, cookieOptions);
+
+      // 4. Enviar respuesta sin token
       return res.status(200).send({
         mensaje: "Sesión iniciada correctamente",
-        token: idToken,
-        usuario: {
-          email,
-          rol,
-          nombre,
-        },
+        usuario: { email, rol, nombre },
       });
     } catch (err) {
       return res
@@ -98,23 +108,28 @@ class AuthController {
   }
 
   //Funcion para sign out el usuario
-  static async signOutUsuario(req, res) {
+static async signOutUsuario(req, res) {
+  try {
     const user = auth.currentUser;
-    if (!user) {
-      res.status(401).send("No hay cuenta iniciada");
-      return;
+    if (user) {
+      await signOut(auth);
     }
 
-    try {
-      await signOut(auth);
-      res.status(203).send({
-        mensaje: "Sesion cerrada",
-      });
-    } catch (err) {
-      console.error("Error al cerrar sesion:", err);
-      res.status(500).send("Error al crear el usuario: " + err.message);
-    }
+    // Borrar cookie del token
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'lax' : 'lax', 
+      path: '/',
+    });
+
+    return res.status(203).send({ mensaje: "Sesion cerrada" });
+  } catch (err) {
+    console.error("Error al cerrar sesion:", err);
+    return res.status(500).send("Error al cerrar la sesión: " + err.message);
   }
+}
+
 
   //Funcion para registrar un formulario de Contacto
 
@@ -287,7 +302,6 @@ class AuthController {
     }
   }
 
-
   //funcion para mostrar eventos en el backend
   static async obtenerEventos(req, res) {
     try {
@@ -306,7 +320,7 @@ class AuthController {
     }
   }
 
-  //funcion para eliminar eventos en la bd 
+  //funcion para eliminar eventos en la bd
   static async eliminarEvento(req, res) {
     const { id } = req.params;
 
@@ -350,24 +364,22 @@ class AuthController {
 
       if (result.length === 0) {
         return res.status(404).send({
-          mensaje: 'No se encontró el evento con ese ID',
+          mensaje: "No se encontró el evento con ese ID",
         });
       }
 
       res.status(200).send({
-        mensaje: 'Evento actualizado correctamente',
+        mensaje: "Evento actualizado correctamente",
         id: result[0].id,
       });
     } catch (error) {
-      console.error('Error al actualizar evento:', error);
+      console.error("Error al actualizar evento:", error);
       res.status(500).send({
-        mensaje: 'Error al actualizar el evento',
+        mensaje: "Error al actualizar el evento",
         detalle: error.message,
       });
     }
   }
-
-
 
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
