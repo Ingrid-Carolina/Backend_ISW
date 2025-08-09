@@ -99,7 +99,7 @@ class AuthController {
       return res.status(200).send({
         mensaje: "Sesión iniciada correctamente",
         usuario: { email, rol, nombre },
-        token: idToken,
+        //token: idToken,
       });
     } catch (err) {
       return res
