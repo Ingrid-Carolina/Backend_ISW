@@ -99,6 +99,7 @@ class AuthController {
       return res.status(200).send({
         mensaje: "Sesión iniciada correctamente",
         usuario: { email, rol, nombre },
+        token: idToken,
       });
     } catch (err) {
       return res
@@ -338,6 +339,7 @@ static async signOutUsuario(req, res) {
     }
   }
 
+  // mofiicar evento
   static async actualizarEvento(req, res) {
     const { id } = req.params;
     let { nombre, fecha_inicio, fecha_final, descripcion } = req.body;
@@ -381,6 +383,7 @@ static async signOutUsuario(req, res) {
     }
   }
 
+  //compras
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
     if (!user) {
@@ -420,6 +423,7 @@ static async signOutUsuario(req, res) {
     }
   }
 
+  //perfil
   static async editarPerfil(req, res) {
     const { nombre } = req.body;
     const uid = req.uid;

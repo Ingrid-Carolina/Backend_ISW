@@ -3,6 +3,7 @@ import { ContactFormValidator, CreateUserValidator, SignInValidator, EditProfile
 import verificarToken from '../Middlewares/ValidatorMiddleware.js';
 import AuthController from '../controllers/authController.js';
 import { requireAuth, requireRole } from '../Middlewares/authCookieMiddleware.js';
+import NoticiaController from '../controllers/noticiaController.js';
 
 const router = express.Router();
 
@@ -21,10 +22,17 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 // Acciones que requieren sesión (usuario logueado)
 // Acciones de administración de eventos
 
+//eventos
 router.post('/comprar', requireAuth, AuthController.realizarcompra);
 router.post('/registrarevento', requireAuth, requireRole('admin', 'admin-calendario'), AuthController.registrarEvento);
 router.put('/evento/:id',      requireAuth, requireRole('admin', 'admin-calendario'), AuthController.actualizarEvento);
 router.delete('/evento/:id',   requireAuth, requireRole('admin', 'admin-calendario'), AuthController.eliminarEvento);
+
+// noticias
+router.get('/noticias', NoticiaController.getNoticias); 
+router.post('/agregarnoticia/:autor_id', requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.addNoticia);
+router.put('/modificarnoticia/:id/:autor_id' ,requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.actualizarNoticia);
+router.delete('/eliminarnoticia/:id', requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.eliminarNoticia);
 
 
 export default router;
