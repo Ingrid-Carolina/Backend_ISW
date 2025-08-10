@@ -307,7 +307,7 @@ static async signOutUsuario(req, res) {
   static async obtenerEventos(req, res) {
     try {
       const eventos = await sql`
-      SELECT id, nombre, descripcion, fecha_inicio, fecha_final
+      SELECT id, nombre, descripcion, fecha_inicio, fecha_final,ishabilitado
       FROM Eventos
       ORDER BY fecha_inicio
     `;
@@ -496,6 +496,96 @@ static async signOutUsuario(req, res) {
     return res.status(500).json({ error: 'Error al eliminar el usuario.' });
   }
 }
+
+static async registrarTestimonio(req, res) {
+    const { nombre, contenido, imagen } = req.body; //destructuramos las propiedades especificas de mi req.body
+
+    try {
+      const result = await sql`SELECT validar_testimonio( ${nombre} )`;
+
+      if (result[0].validar_testimonio) {
+        // Extrae el boolean del arreglo del resultad;
+
+        const userdata = {
+          nombre: nombre,
+          contenido: contenido,
+          imagen: imagen,
+        };
+
+        await sql`INSERT INTO Testimonios ${sql(userdata)} `;
+
+        res.status(203).send({
+          mensaje: "Su testimonio fue creado correctamente",
+        });
+      } else {
+        res.status(400).send({
+          mensaje: "Error: Nombre del testimonio ya existe en la base de datos",
+        });
+      }
+    } catch (err) {
+      res.status(500).send({ mensaje: "Error al crear el usuario: " + err.message});
+    }
+  }
+
+   static async obtenerTestimonios( req,res) {
+    try {
+      const testimonios = await sql`
+      SELECT id_testimonio, nombre, contenido, imagen
+      FROM Testimonios
+    `;
+      console.log("Testimonios obtenidos!")
+      res.status(200).json(testimonios); //los guarda en un json
+    } catch (error) {
+      console.error("Error al obtener eventos:", error);
+      res.status(500).send({ mensaje: "Error al obtener eventos", error: error.message });
+    }
+  }
+
+    static async eliminarTestimonios(req, res) {
+    const { id } = req.params; //no es req.body, por que el id no lo introduce el usuario explicitamente vomo en un form
+
+    try {
+      const result = await sql`
+      DELETE FROM Testimonios WHERE id_testimonio = ${id}
+    `;
+
+      res.status(200).send({ mensaje: "Testimonio eliminado correctamente" });
+    } catch (error) {
+      console.error("Error al eliminar Testimonio:", error);
+      res.status(500).send({ mensaje: "Error al eliminar el testimonio", error: error.message });
+    }
+  }
+
+   static async actualizarTestimonio(req, res) {
+  const { id } = req.params;
+  const { nombre, contenido, imagen } = req.body;
+
+  try {
+  
+  
+    const result = await sql`
+      UPDATE Testimonios
+      SET nombre = ${nombre},
+        contenido = ${contenido},
+        imagen = ${imagen}
+      WHERE id_testimonio = ${id}
+      RETURNING id_testimonio
+    `;
+
+    res.status(200).send({
+      mensaje: 'Testimonio actualizado correctamente',
+      id: result[0].id_testimonio,
+    });
+
+  } catch (error) {
+    console.error('Error al actualizar el testimonio:', error);
+    res.status(500).send({
+      mensaje: 'Error al actualizar el testimonio',
+      detalle: error.message,
+    });
+  }
+}
+
 
 }
 export default AuthController;

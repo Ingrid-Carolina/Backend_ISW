@@ -5,6 +5,8 @@ import AuthController from '../controllers/authController.js';
 import { requireAuth, requireRole } from '../Middlewares/authCookieMiddleware.js';
 import NoticiaController from '../controllers/noticiaController.js';
 
+
+
 const router = express.Router();
 
 router.post('/signup', CreateUserValidator, AuthController.registrarUsuario);
@@ -20,10 +22,9 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 //router.post('/agregarproducto');
 //router.post('/login', (req, res) => authController.login(req, res));
 // Acciones que requieren sesión (usuario logueado)
-// Acciones de administración de eventos
+router.post('/comprar', requireAuth, AuthController.realizarcompra);
 
 //eventos
-router.post('/comprar', requireAuth, AuthController.realizarcompra);
 router.post('/registrarevento', requireAuth, requireRole('admin', 'admin-calendario'), AuthController.registrarEvento);
 router.put('/evento/:id',      requireAuth, requireRole('admin', 'admin-calendario'), AuthController.actualizarEvento);
 router.delete('/evento/:id',   requireAuth, requireRole('admin', 'admin-calendario'), AuthController.eliminarEvento);
@@ -33,6 +34,16 @@ router.get('/noticias', NoticiaController.getNoticias);
 router.post('/agregarnoticia/:autor_id', requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.addNoticia);
 router.put('/modificarnoticia/:id/:autor_id' ,requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.actualizarNoticia);
 router.delete('/eliminarnoticia/:id', requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.eliminarNoticia);
+
+//testimonios
+
+router.post('/registrartestimonio',requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
+router.get('/obtenertestimonios',AuthController.obtenerTestimonios);
+router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
+router.put('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
+
+
+
 
 
 export default router;
