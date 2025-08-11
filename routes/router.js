@@ -22,6 +22,9 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 
 // Acciones que requieren sesión (usuario logueado)
 router.post('/comprar', requireAuth, AuthController.realizarcompra);
+router.post('/editarperfil', verificarToken, EditProfileValidator, AuthController.editarPerfil);
+router.get('/obtenerperfil', AuthController.obtenerPerfil);
+
 
 
 //eventos
