@@ -15,7 +15,6 @@ router.post('/signout', AuthController.signOutUsuario);
 router.post('/registrarformulario', ContactFormValidator, AuthController.registrarformulario);
 router.post('/restablecer', AuthController.ResetPassword);
 router.post('/verificar', AuthController.captcha);
-router.put('/editarperfil', verificarToken, EditProfileValidator, AuthController.editarPerfil);
 router.get('/datosusuario', verificarToken, AuthController.obtenerDatosUsuario);
 router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenticado);
 //router.post('/agregarproducto');
@@ -23,6 +22,7 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 
 // Acciones que requieren sesión (usuario logueado)
 router.post('/comprar', requireAuth, AuthController.realizarcompra);
+
 
 //eventos
 router.get('/obtenereventos', eventController.obtenerEventos);

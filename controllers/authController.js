@@ -227,7 +227,7 @@ static async signOutUsuario(req, res) {
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
     if (!user) {
-      res.status(401).send("No hay cuenta iniciada");
+      res.status(401).send( {mensaje: "No hay cuenta iniciada"});
       return;
     }
 
@@ -265,7 +265,7 @@ static async signOutUsuario(req, res) {
 
   //perfil
   static async editarPerfil(req, res) {
-    const { nombre } = req.body;
+    const { nombre, descripcion, avatar } = req.body;
     const uid = req.uid;
 
     try {
@@ -275,11 +275,36 @@ static async signOutUsuario(req, res) {
 			WHERE id = ${uid}
 		`;
 
-      return res.status(200).json({ mensaje: "Nombre actualizado correctamente" });
+    await sql ` INSERT INTO Perfiles(id_perfil,descripcion,avatar) VALUES(${uid}, ${descripcion}, ${avatar})`;
+
+      return res.status(200).json({ mensaje: "Perfil actualizado correctamente" });
 
     } catch (error) {
       console.error("Error al actualizar nombre:", error);
       res.status(500).json({ mensaje: "Error al actualizar nombre", error: error.message });
+    }
+  }
+
+  static async obtenerPerfil(req, res) { 
+
+    const uid= auth.currentUser.uid;
+
+    try {
+     
+     const perfil = await sql`
+  SELECT u.nombre, p.descripcion, p.avatar
+  FROM Usuarios AS u
+  JOIN Perfiles AS p ON u.id = p.id_perfil
+  WHERE u.id = ${uid}
+    `;
+
+
+
+      return res.status(200).json(perfil);
+
+    } catch (error) {
+      console.error("Error al obtener el perfil del Usuario:", error);
+      res.status(500).json({ mensaje: "Error al obtener el perfil del Usuario", error: error.message });
     }
   }
 
@@ -336,6 +361,7 @@ static async signOutUsuario(req, res) {
     return res.status(500).json({ error: 'Error al eliminar el usuario.' });
   }
 }
+
 
 static async registrarTestimonio(req, res) {
     const { nombre, contenido, imagen } = req.body; //destructuramos las propiedades especificas de mi req.body
