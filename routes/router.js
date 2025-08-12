@@ -21,30 +21,28 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 //router.post('/login', (req, res) => authController.login(req, res));
 
 // Acciones que requieren sesión (usuario logueado)
-router.post('/comprar', requireAuth, AuthController.realizarcompra);
+router.post('/comprar', AuthController.realizarcompra);
 router.post('/editarperfil', verificarToken, EditProfileValidator, AuthController.editarPerfil);
 router.get('/obtenerperfil', AuthController.obtenerPerfil);
 
-
-
 //eventos
-router.get('/obtenereventos', eventController.obtenerEventos);
-router.post('/registrarevento', requireAuth, requireRole('admin', 'admin-calendario'), eventController.registrarEvento);
-router.put('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), eventController.actualizarEvento);
-router.delete('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), eventController.eliminarEvento);
+router.get('/obtenereventos',eventController.obtenerEventos);
+router.post('/registrarevento',eventController.registrarEvento);
+router.put('/evento/:id',eventController.actualizarEvento);
+router.delete('/evento/:id',eventController.eliminarEvento);
 
 // noticias
 router.get('/noticias', NoticiaController.getNoticias); 
-router.post('/agregarnoticia/:autor_id', requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.addNoticia);
-router.put('/modificarnoticia/:id/:autor_id' ,requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.actualizarNoticia);
-router.delete('/eliminarnoticia/:id', requireAuth, requireRole('admin', 'admin-calendario'), NoticiaController.eliminarNoticia);
+router.post('/agregarnoticia/:autor_id', NoticiaController.addNoticia);
+router.put('/modificarnoticia/:id/:autor_id' , NoticiaController.actualizarNoticia);
+router.delete('/eliminarnoticia/:id', NoticiaController.eliminarNoticia);
 
 //testimonios
 
-router.post('/registrartestimonio',requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
+router.post('/registrartestimonio', AuthController.registrarTestimonio);
 router.get('/obtenertestimonios',AuthController.obtenerTestimonios);
-router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
-router.put('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
+router.delete('/testimonio/:id',AuthController.eliminarTestimonios);
+router.put('/testimonio/:id', AuthController.actualizarTestimonio);
 
 
 
