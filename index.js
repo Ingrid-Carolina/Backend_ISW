@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
 // DB
-dbConnect(); 
+//dbConnect(); 
 
 // Rutas
 
