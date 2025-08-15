@@ -40,8 +40,16 @@ app.use(cookieParser());
 dbConnect();
 
 // Rutas (tu router está montado en /auth)
-app.use('/auth', router);
+
+// --- PING DE SALUD / RUTAS DE PRUEBA ---
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+app.get('/', (_req, res) => {
+  res.type('text/plain').send('API alive');
+});
+
+app.use('/auth', router);
+
 
 
 // Puerto (Railway usa PORT)
