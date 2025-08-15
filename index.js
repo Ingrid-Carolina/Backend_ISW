@@ -5,7 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { dbConnect } from './config/postgre.js'; 
-import router from './routes/router.js';
+//import router from './routes/router.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -27,7 +27,11 @@ app.use(express.json());
 dbConnect(); 
 
 // Rutas
-app.use('/auth', router);
+
+app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/', (_req, res) => res.type('text/plain').send('API alive'));
+
+//app.use('/auth', router);
 
 const PORT = 3000;
 app.listen(process.env.PORT, '0.0.0.0', () => {
