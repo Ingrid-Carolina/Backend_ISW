@@ -33,7 +33,7 @@ app.get('/', (_req, res) => res.type('text/plain').send('API alive'));
 
 //app.use('/auth', router);
 
-const PORT = 3000;
-app.listen(process.env.PORT, '0.0.0.0', () => {
-  console.log(`Listening on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`API listening on :${PORT}`);
 });
