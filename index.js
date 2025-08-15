@@ -41,6 +41,8 @@ dbConnect();
 
 // Rutas (tu router está montado en /auth)
 app.use('/auth', router);
+app.get('/health', (_req, res) => res.json({ ok: true }));
+
 
 // Puerto (Railway usa PORT)
 const PORT = process.env.PORT || 3000;
