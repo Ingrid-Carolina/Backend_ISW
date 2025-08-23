@@ -35,6 +35,7 @@ export default class eventController {
       const eventos = await sql`
       SELECT id, nombre, descripcion, fecha_inicio, fecha_final,ishabilitado
       FROM Eventos
+      WHERE fecha_inicio > CURRENT_DATE
       ORDER BY fecha_inicio
     `;
 
