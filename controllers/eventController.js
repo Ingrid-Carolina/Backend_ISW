@@ -5,11 +5,11 @@ export default class eventController {
 
 //Funcion para registrar Eventos
   static async registrarEvento(req, res) {
-    const { nombre, fecha_inicio, descripcion, fecha_final } = req.body;
+    const { nombre, fecha_inicio, descripcion, fecha_final, img_url } = req.body;
 
     try {
       const result = await sql`
-      SELECT * FROM evento_valido(${nombre}, ${fecha_inicio}, ${fecha_final}, ${descripcion})
+      SELECT * FROM evento_valido(${nombre}, ${fecha_inicio}, ${fecha_final}, ${descripcion}, ${img_url})
     `;
 
       const { exito, mensaje } = result[0];
@@ -33,7 +33,7 @@ export default class eventController {
   static async obtenerEventos(req, res) {
     try {
       const eventos = await sql`
-      SELECT id, nombre, descripcion, fecha_inicio, fecha_final,ishabilitado
+      SELECT id, nombre, descripcion, fecha_inicio, fecha_final, ishabilitado, img_url
       FROM Eventos
       WHERE fecha_inicio > CURRENT_DATE
       ORDER BY fecha_inicio
@@ -69,7 +69,7 @@ export default class eventController {
   // mofiicar evento
   static async actualizarEvento(req, res) {
     const { id } = req.params;
-    let { nombre, fecha_inicio, fecha_final, descripcion } = req.body;
+    let { nombre, fecha_inicio, fecha_final, descripcion, img_url } = req.body;
 
     try {
       // Conversión segura a tipo Date
@@ -86,7 +86,8 @@ export default class eventController {
 			SET nombre = ${nombre},
 				fecha_inicio = ${inicio.toISOString()},
 				fecha_final = ${final.toISOString()},
-				descripcion = ${descripcion}
+				descripcion = ${descripcion},
+        img_url = ${img_url}
 			WHERE id = ${id}
 			RETURNING id
 		`;
