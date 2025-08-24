@@ -33,7 +33,7 @@ router.get('/obtenerperfil', requireAuth, AuthController.obtenerPerfil);
 
 //eventos
 router.get('/obtenereventos',eventController.obtenerEventos);
-router.post('/registrarevento',requireAuth, requireRole('admin', 'admin-calendario'),eventController.registrarEvento);
+router.post('/registrarevento',eventController.registrarEvento);
 router.put('/evento/:id',eventController.actualizarEvento);
 router.delete('/evento/:id',eventController.eliminarEvento);
 
