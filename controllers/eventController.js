@@ -12,13 +12,11 @@ export default class eventController {
       SELECT * FROM evento_valido(${nombre}, ${fecha_inicio}, ${fecha_final}, ${descripcion}, ${img_url})
     `;
 
-      const { exito, mensaje } = result[0];
+      const { exito, mensaje, id } = result[0] || {};
 
-      if (exito) {
-        res.status(201).send({ mensaje });
-      } else {
-        res.status(400).send({ mensaje });
-      }
+      if(exito) return res.status(200).send({mensaje, id});
+
+      return res.status(400).send({ mensaje });
     } catch (error) {
       console.error("Error al registrar evento:", error);
 
