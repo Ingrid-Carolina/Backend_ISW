@@ -6,8 +6,13 @@ import { requireAuth, requireRole } from '../Middlewares/authCookieMiddleware.js
 import NoticiaController from '../controllers/noticiaController.js';
 import eventController from '../controllers/eventController.js';
 
-
 const router = express.Router();
+
+router.use((req, _res, next) => {
+  console.log('Cookie token?', !!req.cookies?.token, 'Origin:', req.headers.origin);
+  next();
+});
+
 
 router.post('/signup', CreateUserValidator, AuthController.registrarUsuario);
 router.post('/signin', SignInValidator, AuthController.loginUsuario);
@@ -22,8 +27,8 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 
 // Acciones que requieren sesión (usuario logueado)
 router.post('/comprar', AuthController.realizarcompra);
-router.post('/editarperfil', verificarToken, EditProfileValidator, AuthController.editarPerfil);
-router.get('/obtenerperfil', AuthController.obtenerPerfil);
+router.put('/editarperfil', requireAuth, EditProfileValidator, AuthController.editarPerfil);
+router.get('/obtenerperfil', requireAuth, AuthController.obtenerPerfil);
 
 //eventos
 router.get('/obtenereventos',eventController.obtenerEventos);

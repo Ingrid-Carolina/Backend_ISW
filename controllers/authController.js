@@ -3,7 +3,7 @@ import auth from "../config/firebase.js";
 import { sql } from "../config/postgre.js";
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
-import admin from '../config/firebase-admin.js';
+import admin from "../config/firebase-admin.js";
 
 //import { sql } from "./postgre.js";
 import {
@@ -13,16 +13,15 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === "production";
 
 const cookieOptions = {
   httpOnly: true,
-  secure: isProd,       
-  sameSite: 'lax',      
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  path: '/',
+  secure: isProd, // true en producción con HTTPS
+  sameSite: isProd ? "none" : "lax",
+  path: "/",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
 };
-
 
 class AuthController {
   // Funcion para registrar usuario
@@ -109,27 +108,27 @@ class AuthController {
   }
 
   //Funcion para sign out el usuario
-static async signOutUsuario(req, res) {
-  try {
-    const user = auth.currentUser;
-    if (user) {
-      await signOut(auth);
+  static async signOutUsuario(req, res) {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await signOut(auth);
+      }
+
+      // Borrar cookie del token
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
+      });
+
+      return res.status(203).send({ mensaje: "Sesion cerrada" });
+    } catch (err) {
+      console.error("Error al cerrar sesion:", err);
+      return res.status(500).send("Error al cerrar la sesión: " + err.message);
     }
-
-    // Borrar cookie del token
-    res.clearCookie('token', {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'lax' : 'lax', 
-      path: '/',
-    });
-
-    return res.status(203).send({ mensaje: "Sesion cerrada" });
-  } catch (err) {
-    console.error("Error al cerrar sesion:", err);
-    return res.status(500).send("Error al cerrar la sesión: " + err.message);
   }
-}
   //Funcion para registrar un formulario de Contacto
 
   static async registrarformulario(req, res) {
@@ -221,13 +220,11 @@ static async signOutUsuario(req, res) {
     }
   }
 
-  
-
   //compras
   static async realizarcompra(req, res) {
     const user = auth.currentUser;
     if (!user) {
-      res.status(401).send( {mensaje: "No hay cuenta iniciada"});
+      res.status(401).send({ mensaje: "No hay cuenta iniciada" });
       return;
     }
 
@@ -267,44 +264,62 @@ static async signOutUsuario(req, res) {
   static async editarPerfil(req, res) {
     const { nombre, descripcion, avatar } = req.body;
     const uid = req.uid;
+    if (!uid) return res.status(401).json({ mensaje: "No autenticado" });
 
     try {
-      await sql`
-			UPDATE Usuarios
-			SET nombre = ${nombre}
-			WHERE id = ${uid}
-		`;
+      if (typeof nombre === "string" && nombre.trim() !== "") {
+        await sql`
+        UPDATE Usuarios
+        SET nombre = ${nombre}
+        WHERE id = ${uid}
+      `;
+      }
 
-    await sql ` INSERT INTO Perfiles(id_perfil,descripcion,avatar) VALUES(${uid}, ${descripcion}, ${avatar})`;
+      // Transacción por seguridad
+      await sql.begin(async (tx) => {
+        const updated = await tx`
+        UPDATE Perfiles
+        SET descripcion = ${descripcion}, avatar = ${avatar}
+        WHERE id_perfil = ${uid}
+        RETURNING id_perfil
+      `;
+        if (updated.length === 0) {
+          await tx`
+          INSERT INTO Perfiles (id_perfil, descripcion, avatar)
+          VALUES (${uid}, ${descripcion}, ${avatar})
+        `;
+        }
+      });
 
-      return res.status(200).json({ mensaje: "Perfil actualizado correctamente" });
-
+      return res.status(200).json({
+        mensaje: "Perfil actualizado correctamente",
+        avatar, // devuelve la URL para refrescar la navbar
+      });
     } catch (error) {
-      console.error("Error al actualizar nombre:", error);
-      res.status(500).json({ mensaje: "Error al actualizar nombre", error: error.message });
+      console.error("Error al actualizar perfil:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al actualizar perfil", error: error.message });
     }
   }
 
-  static async obtenerPerfil(req, res) { 
-
-    const uid= auth.currentUser.uid;
+  static async obtenerPerfil(req, res) {
+    const uid = req.uid;
+    if (!uid) return res.status(401).json({ error: "No autenticado" });
 
     try {
-     
-     const perfil = await sql`
-  SELECT u.nombre, p.descripcion, p.avatar
-  FROM Usuarios AS u
-  JOIN Perfiles AS p ON u.id = p.id_perfil
-  WHERE u.id = ${uid}
+      const perfil = await sql`
+      SELECT u.nombre, p.descripcion, p.avatar
+      FROM Usuarios u
+      LEFT JOIN Perfiles p ON u.id = p.id_perfil
+      WHERE u.id = ${uid}
     `;
-
-
-
       return res.status(200).json(perfil);
-
     } catch (error) {
-      console.error("Error al obtener el perfil del Usuario:", error);
-      res.status(500).json({ mensaje: "Error al obtener el perfil del Usuario", error: error.message });
+      console.error("Error al obtener perfil:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al obtener perfil", error: error.message });
     }
   }
 
@@ -322,7 +337,9 @@ static async signOutUsuario(req, res) {
     `;
 
       if (result.length === 0) {
-        return res.status(404).json({ mensaje: 'Usuario no encontrado en la base de datos' });
+        return res
+          .status(404)
+          .json({ mensaje: "Usuario no encontrado en la base de datos" });
       }
 
       const { nombre, password } = result[0];
@@ -330,40 +347,45 @@ static async signOutUsuario(req, res) {
       res.status(200).json({
         nombre,
         email,
-        password
+        password,
       });
-
     } catch (error) {
-      console.error('Error al obtener datos del usuario:', error);
-      res.status(500).json({ mensaje: 'Error al obtener datos del usuario', error: error.message });
+      console.error("Error al obtener datos del usuario:", error);
+      res.status(500).json({
+        mensaje: "Error al obtener datos del usuario",
+        error: error.message,
+      });
     }
   }
 
   static async eliminarUsuarioAutenticado(req, res) {
-  try {
-    const uid = req.uid;
+    try {
+      const uid = req.uid;
 
-    // Eliminar el usuario de Firebase Authentication
-    await admin.auth().deleteUser(uid);
+      // Eliminar el usuario de Firebase Authentication
+      await admin.auth().deleteUser(uid);
 
-    // Eliminar el usuario de tu base de datos PostgreSQL
-    await sql`DELETE FROM usuarios WHERE id = ${uid}`;
+      // Eliminar el usuario de tu base de datos PostgreSQL
+      await sql`DELETE FROM usuarios WHERE id = ${uid}`;
 
-    return res.status(200).json({ mensaje: 'Usuario eliminado correctamente.' });
-  } catch (error) {
-    console.error('Error al eliminar usuario:', error);
+      return res
+        .status(200)
+        .json({ mensaje: "Usuario eliminado correctamente." });
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
 
-    // Manejar error específico si el usuario no existe en Firebase
-    if (error.code === 'auth/user-not-found') {
-      return res.status(404).json({ error: 'Usuario no encontrado en Firebase.' });
+      // Manejar error específico si el usuario no existe en Firebase
+      if (error.code === "auth/user-not-found") {
+        return res
+          .status(404)
+          .json({ error: "Usuario no encontrado en Firebase." });
+      }
+
+      return res.status(500).json({ error: "Error al eliminar el usuario." });
     }
-
-    return res.status(500).json({ error: 'Error al eliminar el usuario.' });
   }
-}
 
-
-static async registrarTestimonio(req, res) {
+  static async registrarTestimonio(req, res) {
     const { nombre, contenido, imagen } = req.body; //destructuramos las propiedades especificas de mi req.body
 
     try {
@@ -389,25 +411,29 @@ static async registrarTestimonio(req, res) {
         });
       }
     } catch (err) {
-      res.status(500).send({ mensaje: "Error al crear el usuario: " + err.message});
+      res
+        .status(500)
+        .send({ mensaje: "Error al crear el usuario: " + err.message });
     }
   }
 
-   static async obtenerTestimonios( req,res) {
+  static async obtenerTestimonios(req, res) {
     try {
       const testimonios = await sql`
       SELECT id_testimonio, nombre, contenido, imagen
       FROM Testimonios
     `;
-      console.log("Testimonios obtenidos!")
+      console.log("Testimonios obtenidos!");
       res.status(200).json(testimonios); //los guarda en un json
     } catch (error) {
       console.error("Error al obtener eventos:", error);
-      res.status(500).send({ mensaje: "Error al obtener eventos", error: error.message });
+      res
+        .status(500)
+        .send({ mensaje: "Error al obtener eventos", error: error.message });
     }
   }
 
-    static async eliminarTestimonios(req, res) {
+  static async eliminarTestimonios(req, res) {
     const { id } = req.params; //no es req.body, por que el id no lo introduce el usuario explicitamente vomo en un form
 
     try {
@@ -418,18 +444,19 @@ static async registrarTestimonio(req, res) {
       res.status(200).send({ mensaje: "Testimonio eliminado correctamente" });
     } catch (error) {
       console.error("Error al eliminar Testimonio:", error);
-      res.status(500).send({ mensaje: "Error al eliminar el testimonio", error: error.message });
+      res.status(500).send({
+        mensaje: "Error al eliminar el testimonio",
+        error: error.message,
+      });
     }
   }
 
-   static async actualizarTestimonio(req, res) {
-  const { id } = req.params;
-  const { nombre, contenido, imagen } = req.body;
+  static async actualizarTestimonio(req, res) {
+    const { id } = req.params;
+    const { nombre, contenido, imagen } = req.body;
 
-  try {
-  
-  
-    const result = await sql`
+    try {
+      const result = await sql`
       UPDATE Testimonios
       SET nombre = ${nombre},
         contenido = ${contenido},
@@ -438,20 +465,17 @@ static async registrarTestimonio(req, res) {
       RETURNING id_testimonio
     `;
 
-    res.status(200).send({
-      mensaje: 'Testimonio actualizado correctamente',
-      id: result[0].id_testimonio,
-    });
-
-  } catch (error) {
-    console.error('Error al actualizar el testimonio:', error);
-    res.status(500).send({
-      mensaje: 'Error al actualizar el testimonio',
-      detalle: error.message,
-    });
+      res.status(200).send({
+        mensaje: "Testimonio actualizado correctamente",
+        id: result[0].id_testimonio,
+      });
+    } catch (error) {
+      console.error("Error al actualizar el testimonio:", error);
+      res.status(500).send({
+        mensaje: "Error al actualizar el testimonio",
+        detalle: error.message,
+      });
+    }
   }
-}
-
-
 }
 export default AuthController;
