@@ -5,6 +5,7 @@ import AuthController from '../controllers/authController.js';
 import { requireAuth, requireRole } from '../Middlewares/authCookieMiddleware.js';
 import NoticiaController from '../controllers/noticiaController.js';
 import eventController from '../controllers/eventController.js';
+import JugadorController from '../controllers/jugadorController.js';
 
 const router = express.Router();
 
@@ -48,6 +49,9 @@ router.post('/registrartestimonio', AuthController.registrarTestimonio);
 router.get('/obtenertestimonios',AuthController.obtenerTestimonios);
 router.delete('/testimonio/:id',AuthController.eliminarTestimonios);
 router.put('/testimonio/:id', AuthController.actualizarTestimonio);
+
+//jugadores
+router.get('/jugadores', JugadorController.getJugadores);
 
 
 
