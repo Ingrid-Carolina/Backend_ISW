@@ -24,6 +24,30 @@ class NoticiaController {
     }
 
 
+
+    /* Hola bro este es un metodo para solo agarrar una noticia unica con su id jaja xd */
+    static async getNoticiaById(req, res) {
+        try {
+            const { id } = req.params;
+
+            const [noticia] = await sql`
+                SELECT * FROM noticias WHERE id = ${id}
+            `;
+
+            if (!noticia) {
+                return res.status(404).json({ error: "Noticia no encontrada" });
+            }
+
+            res.status(200).json(noticia);
+        } catch (e) {
+            console.error(`Error al obtener noticia: ${e}`);
+            res.status(500).json({
+                error: `Error al obtener noticia: ${e}`
+            });
+        }
+    }
+
+
     /**
      * Crea la noticia
      * @async 

@@ -42,6 +42,7 @@ router.get('/noticias', NoticiaController.getNoticias);
 router.post('/agregarnoticia/:autor_id', NoticiaController.addNoticia);
 router.put('/modificarnoticia/:id/:autor_id' , NoticiaController.actualizarNoticia);
 router.delete('/eliminarnoticia/:id', NoticiaController.eliminarNoticia);
+router.get('/noticias/:id', NoticiaController.getNoticiaById); 
 
 //testimonios
 
