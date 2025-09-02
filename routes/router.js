@@ -27,7 +27,7 @@ router.delete('/eliminar', verificarToken, AuthController.eliminarUsuarioAutenti
 //router.post('/login', (req, res) => authController.login(req, res));
 
 // Acciones que requieren sesión (usuario logueado)
-router.post('/comprar', AuthController.realizarcompra);
+router.post('/comprar', requireAuth, AuthController.realizarcompra);
 router.put('/editarperfil', requireAuth, EditProfileValidator, AuthController.editarPerfil);
 router.get('/obtenerperfil', requireAuth, AuthController.obtenerPerfil);
 
@@ -39,17 +39,16 @@ router.delete('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario
 
 // noticias
 router.get('/noticias', NoticiaController.getNoticias); 
-router.post('/agregarnoticia/:autor_id', NoticiaController.addNoticia);
-router.put('/modificarnoticia/:id/:autor_id' , NoticiaController.actualizarNoticia);
-router.delete('/eliminarnoticia/:id', NoticiaController.eliminarNoticia);
+router.post('/agregarnoticia/:autor_id', requireAuth, requireRole('admin'), NoticiaController.addNoticia);
+router.put('/modificarnoticia/:id/:autor_id' ,requireAuth, requireRole('admin'), NoticiaController.actualizarNoticia);
+router.delete('/eliminarnoticia/:id', requireAuth, requireRole('admin'), NoticiaController.eliminarNoticia);
 router.get('/noticias/:id', NoticiaController.getNoticiaById); 
 
 //testimonios
-
-router.post('/registrartestimonio', AuthController.registrarTestimonio);
 router.get('/obtenertestimonios',AuthController.obtenerTestimonios);
-router.delete('/testimonio/:id',AuthController.eliminarTestimonios);
-router.put('/testimonio/:id', AuthController.actualizarTestimonio);
+router.post('/registrartestimonio',requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
+router.put('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
+router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
 
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
