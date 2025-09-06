@@ -152,4 +152,5 @@ class NoticiaController {
     }
 }
 
+//-
 export default NoticiaController;

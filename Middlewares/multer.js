@@ -9,4 +9,6 @@ const uploadImages = multer({
   fileFilter: (_req, file, cb) => cb(null, allowed.includes(file.mimetype)),
 });
 
+//--
+
 export default uploadImages;
