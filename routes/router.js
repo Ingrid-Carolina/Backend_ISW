@@ -60,7 +60,7 @@ router.get('/jugadores', JugadorController.getJugadores);
 //subir imagenes
 router.post('/upload', requireAuth, requireRole('admin'), uploadImages.single('file'), FileUploadController.uploadFile);
 
-
+//router.post('/health', SomeController.someFunction);
 
 
 export default router;
