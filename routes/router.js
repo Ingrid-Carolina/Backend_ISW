@@ -6,6 +6,9 @@ import { requireAuth, requireRole } from '../Middlewares/authCookieMiddleware.js
 import NoticiaController from '../controllers/noticiaController.js';
 import eventController from '../controllers/eventController.js';
 import JugadorController from '../controllers/jugadorController.js';
+import FileUploadController from '../controllers/fileUploadController.js';
+import uploadImages from '../Middlewares/multer.js';
+
 
 const router = express.Router();
 
@@ -53,6 +56,9 @@ router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthControlle
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
 
+
+//subir imagenes
+router.post('/upload', requireAuth, requireRole('admin'), uploadImages.single('file'), FileUploadController.uploadFile);
 
 
 
