@@ -8,6 +8,7 @@ import eventController from '../controllers/eventController.js';
 import JugadorController from '../controllers/jugadorController.js';
 import FileUploadController from '../controllers/fileUploadController.js';
 import uploadImages from '../Middlewares/multer.js';
+import ProductosDonacionController from '../controllers/productos_donacionController.js';
 
 
 const router = express.Router();
@@ -61,6 +62,12 @@ router.get('/jugadores', JugadorController.getJugadores);
 router.post('/upload', requireAuth, requireRole('admin'), uploadImages.single('file'), FileUploadController.uploadFile);
 
 //router.post('/health', SomeController.someFunction);
+
+// productos donación
+router.get('/productos', ProductosDonacionController.getProductos);
+router.post('/productos', requireAuth, requireRole('admin'), ProductosDonacionController.addProducto);
+router.put('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
+router.delete('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 
 
 export default router;
