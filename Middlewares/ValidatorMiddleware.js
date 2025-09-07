@@ -122,3 +122,59 @@ const verificarToken = async (req, res, next) => {
 
 
 export default verificarToken;
+
+export const DonacionesFormValidator = [
+	check('nombre')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('El nombre es obligatorio.')
+		.isLength({ min: 3 }).withMessage('El nombre debe tener 3 caracteres minimo.')
+		.matches(/^[A-Za-zÀ-ÿ\s]+$/).withMessage('Solo letras permitidas.'),
+
+	check('correo')
+		.trim()
+    .escape()
+		.notEmpty().withMessage('El correo es obligatorio.')
+		.isEmail().withMessage('Correo inválido.')
+		.matches(/@(gmail\.com|outlook\.com|hotmail\.com)$/i)
+		.withMessage('Solo se permiten correos de Gmail, Outlook o Hotmail.'),
+
+	check('telefono')
+		.notEmpty().withMessage('El teléfono es obligatorio.')
+		.isNumeric().withMessage('Solo números.'),
+
+    check('dia')
+    .trim()
+    .escape()
+    .notEmpty().withMessage('El dia de entrega es obligatorio')
+    .matches(/^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/)
+  .withMessage('El día debe estar en el formato de fecha correcto')
+  .custom((value) => {
+    const year = parseInt(value.split('/')[2], 10); //pasamos de date a int para validar ser 2025 o mayor
+    return year >= 2025;
+  })
+  .withMessage('El año debe ser 2025 o posterior'),
+
+
+  check('horario')
+  .trim()
+  .escape()
+  .notEmpty().withMessage('La hora es obligatoria')
+  .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  .withMessage('La hora debe estar en el formato correcto HH:MM'),
+
+
+	check('descripcion')
+		.trim()
+        .escape()
+		.notEmpty().withMessage('El mensaje es obligatorio.')
+		.isLength({ min: 10}).withMessage('La descripcion debe tener minimo 10 caracteres'),
+
+
+
+   (req, res, next) => {
+        validateResult(req, res, next);
+    }
+
+
+];
