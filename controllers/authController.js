@@ -309,7 +309,7 @@ class AuthController {
 
     try {
       const perfil = await sql`
-      SELECT u.nombre, p.descripcion, p.avatar
+      SELECT u.nombre, p.descripcion, p.avatar, u.rol
       FROM Usuarios u
       LEFT JOIN Perfiles p ON u.id = p.id_perfil
       WHERE u.id = ${uid}
