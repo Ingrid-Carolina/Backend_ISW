@@ -54,6 +54,12 @@ router.post('/registrartestimonio',requireAuth, requireRole('admin'), AuthContro
 router.put('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
 router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
 
+//envivo
+router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthController.registrarenvivo);
+router.get('/obtenerenvivo',  AuthController.obtenerenvivo);
+router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
+
+
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
 

@@ -477,5 +477,141 @@ class AuthController {
       });
     }
   }
+
+ static async registrarenvivo(req, res) {
+    const { video_url, channel_url, descripcion} = req.body; //destructuramos las propiedades especificas de mi req.body
+
+    try {
+      if (!video_url || !channel_url) {
+      return res.status(400).send({
+        mensaje: "Los campos video_url y channel_url son requeridos"
+      });
+    }
+
+      const result = await sql`SELECT validar_url( ${video_url} )`;
+
+      if (result[0].validar_url) {
+        // Extrae el boolean del arreglo del resultad;
+
+        const urldata = {
+          video_url: video_url,
+          channel_url: channel_url,
+          descripcion: descripcion,
+          activo: 'S' // Activar por defecto
+
+        };
+
+        await sql`INSERT INTO envivo ${sql(urldata)} `;
+
+        res.status(203).send({
+          mensaje: "Su video en vivo fue creado correctamente",
+        });
+      } else {
+        res.status(400).send({
+          mensaje: "Error: La url del video en vivo ya existe en la base de datos",
+        });
+      }
+    } catch (err) {
+      res
+        .status(500)
+        .send({ mensaje: "Error al crear el video en vivo: " + err.message });
+    }
+  }
+
+
+  static async obtenerenvivo(req, res) {
+   
+    try {
+       const videos = await sql`
+      SELECT id_envivo, video_url, channel_url, descripcion, activo 
+      FROM envivo 
+      ORDER BY id_envivo DESC
+    `;
+
+        console.log('Videos cargados!', videos.length)
+        res.status(203).json({ videos}); //envia el arreglo de los videos cargados en un json
+      
+    } catch (err) {
+      res.status(500).send({ mensaje: "Error al cargar los videos: " + err.message });
+    }
+  }
+
+
+  static async actualizarenvivo(req,res){
+
+    const{ id_envivo}= req.params;
+     const { video_url, channel_url, descripcion} = req.body;
+    try {
+
+      if (!video_url || !channel_url) {
+      return res.status(400).send({
+        mensaje: "Los campos video_url y channel_url son requeridos"
+      });
+    }
+
+      const result = await sql`
+      UPDATE envivo
+      SET video_url = ${video_url},
+        channel_url = ${channel_url},
+        descripcion = ${descripcion},
+      WHERE id_envivo = ${id_envivo}
+      RETURNING id_envivo, video_url, channel_url, descripcion, activo
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).send({
+        mensaje: "Video no encontrado"
+      });
+    }
+
+
+    res.status(203).send({ mensaje: "Video actualizado exitosamente!"})
+      
+    } catch (error) {
+
+        res.status(500).send({ mensaje: "Error al actualizar el video: "+" "+error.message})
+      
+    }
+
+
+  }
+
+  static async toggleActivoEnvivo(req, res) {
+  const { id_envivo } = req.params;
+  
+  try {
+    // Primero desactivar todos los videos
+    await sql`UPDATE envivo SET activo = 'N'`;
+    
+    // Luego activar solo el seleccionado
+    const result = await sql`
+      UPDATE envivo
+      SET activo = 'S'
+      WHERE id_envivo = ${id_envivo}
+      RETURNING id_envivo, video_url, channel_url, descripcion, activo
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).send({
+        mensaje: "Video no encontrado"
+      });
+    }
+
+    res.status(200).send({
+      mensaje: "Video activado correctamente",
+      video: result[0]
+    });
+    
+  } catch (error) {
+    console.error('Error en toggleActivoEnvivo:', error);
+    res.status(500).send({
+      mensaje: "Error al activar el video: " + error.message
+    });
+  }
+}
+
+
+
+
 }
 export default AuthController;
