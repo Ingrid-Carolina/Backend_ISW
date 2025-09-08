@@ -20,7 +20,7 @@ const cookieOptions = {
   secure: isProd, // true en producción con HTTPS
   sameSite: isProd ? "none" : "lax",
   path: "/",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+  maxAge: 4 * 60 * 60 * 1000, // 4 horas
 };
 
 class AuthController {
