@@ -37,8 +37,8 @@ router.get('/obtenerperfil', requireAuth, AuthController.obtenerPerfil);
 
 //eventos
 router.get('/obtenereventos',eventController.obtenerEventos);
-router.post('/registrarevento', requireAuth, requireRole('admin', 'admin-calendario'), eventController.registrarEvento);
-router.put('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), eventController.actualizarEvento);
+router.post('/registrarevento', requireAuth, requireRole('admin', 'admin-calendario'), uploadImages.single('file'), eventController.registrarEvento);
+router.put('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), uploadImages.single('file'), eventController.actualizarEvento);
 router.delete('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), eventController.eliminarEvento);
 
 // noticias
