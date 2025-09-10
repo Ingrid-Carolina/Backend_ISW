@@ -140,20 +140,20 @@ export const DonacionesFormValidator = [
 		.withMessage('Solo se permiten correos de Gmail, Outlook o Hotmail.'),
 
 	check('telefono')
-		.notEmpty().withMessage('El teléfono es obligatorio.')
-		.isNumeric().withMessage('Solo números.'),
+		.notEmpty().withMessage('El teléfono es obligatorio.'),
 
     check('dia')
-    .trim()
-    .escape()
-    .notEmpty().withMessage('El dia de entrega es obligatorio')
-    .matches(/^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/)
-  .withMessage('El día debe estar en el formato de fecha correcto')
+  .trim()
+  .escape()
+  .notEmpty().withMessage('El día de entrega es obligatorio')
+  .matches(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/)
+  .withMessage('El día debe estar en el formato correcto: YYYY-MM-DD')
   .custom((value) => {
-    const year = parseInt(value.split('/')[2], 10); //pasamos de date a int para validar ser 2025 o mayor
+    const year = parseInt(value.split('-')[0], 10); // extraemos el año desde el formato YYYY-MM-DD
     return year >= 2025;
   })
   .withMessage('El año debe ser 2025 o posterior'),
+
 
 
   check('horario')

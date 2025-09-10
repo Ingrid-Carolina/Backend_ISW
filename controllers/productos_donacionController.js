@@ -81,6 +81,33 @@ class ProductosDonacionController {
             res.status(500).json({ error: `Error al eliminar producto: ${e}` });
         }
     }
+
+     static async registrardonacion(req, res) {
+        const { nombre, telefono, correo, dia,horario, descripcion } = req.body;
+
+        
+        try {
+
+            const donaciondata = {
+          nombre: nombre,
+          telefono: telefono,
+          correo: correo,
+          dia: dia,
+          horario: horario,
+          descripcion:descripcion
+
+        };
+            await sql`
+                INSERT INTO donaciones ${sql(donaciondata)}
+            `;
+            res.status(201).send({ mensaje: 'Donacion ingresada correctamente!' });
+        } catch (e) {
+            
+            res.status(500).send({ error: `Error al agregar donacion: ${e}` });
+        }
+    }
+
+
 }
 
 export default ProductosDonacionController;

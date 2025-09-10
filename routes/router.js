@@ -1,5 +1,5 @@
 import express from 'express'
-import { ContactFormValidator, CreateUserValidator, SignInValidator, EditProfileValidator } from '../Middlewares/ValidatorMiddleware.js';
+import { ContactFormValidator, CreateUserValidator, SignInValidator, EditProfileValidator, DonacionesFormValidator } from '../Middlewares/ValidatorMiddleware.js';
 import verificarToken from '../Middlewares/ValidatorMiddleware.js';
 import AuthController from '../controllers/authController.js';
 import { requireAuth, requireRole } from '../Middlewares/authCookieMiddleware.js';
@@ -74,6 +74,7 @@ router.get('/productos', ProductosDonacionController.getProductos);
 router.post('/productos', requireAuth, requireRole('admin'), ProductosDonacionController.addProducto);
 router.put('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
 router.delete('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
+router.post('/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
 
 
 export default router;
