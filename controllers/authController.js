@@ -610,7 +610,191 @@ class AuthController {
   }
 }
 
+//Nuestroequipo
+//Obtener todos los miembros de la junta directiva
+static async obtenerJuntaDirectiva(req, res) {
+  try {
+    const juntaDirectiva = await sql`
+      SELECT id_miembro, nombre, rol 
+      FROM junta_directiva 
+      WHERE activo = 'S' 
+      ORDER BY 
+        CASE rol
+          WHEN 'Presidente' THEN 1
+          WHEN 'Vicepresidente' THEN 2
+          WHEN 'Secretaria' THEN 3
+          WHEN 'Tesorera' THEN 4
+          WHEN 'Fiscal' THEN 5
+          WHEN 'Vocal I' THEN 6
+          WHEN 'Vocal II' THEN 7
+          WHEN 'Vocal III' THEN 8
+          ELSE 9
+        END
+    `;
+    
+    console.log('Junta directiva obtenida!', juntaDirectiva.length);
+    res.status(200).json(juntaDirectiva);
+  } catch (error) {
+    console.error('Error al obtener junta directiva:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
 
+// Agregar nuevo miembro a la junta directiva
+static async agregarMiembro(req, res) {
+  const { nombre, rol } = req.body;
+  
+  try {
+    // Validaciones
+    if (!nombre || !rol) {
+      return res.status(400).json({ 
+        mensaje: 'El nombre y rol son requeridos' 
+      });
+    }
+
+    // Verificar si el rol ya existe
+    const existing = await sql`
+      SELECT id_miembro 
+      FROM junta_directiva 
+      WHERE rol = ${rol} AND activo = 'S'
+    `;
+
+    if (existing.length > 0) {
+      return res.status(400).json({ 
+        mensaje: `El rol "${rol}" ya está ocupado` 
+      });
+    }
+
+    // Insertar nuevo miembro
+    const result = await sql`
+      INSERT INTO junta_directiva (nombre, rol, activo)
+      VALUES (${nombre}, ${rol}, 'S')
+      RETURNING id_miembro
+    `;
+
+    res.status(201).json({
+      mensaje: 'Miembro agregado correctamente',
+      id_miembro: result[0].id_miembro,
+      nombre,
+      rol
+    });
+  } catch (error) {
+    console.error('Error al agregar miembro:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
+
+// Editar miembro existente
+static async editarMiembro(req, res) {
+  const { id } = req.params;
+  const { nombre, rol } = req.body;
+
+  try {
+    // Validaciones
+    if (!nombre || !rol) {
+      return res.status(400).json({ 
+        mensaje: 'El nombre y rol son requeridos' 
+      });
+    }
+
+    // Verificar si el miembro existe
+    const member = await sql`
+      SELECT id_miembro 
+      FROM junta_directiva 
+      WHERE id_miembro = ${id} AND activo = 'S'
+    `;
+
+    if (member.length === 0) {
+      return res.status(404).json({ 
+        mensaje: 'Miembro no encontrado' 
+      });
+    }
+
+    // Verificar si el rol ya está ocupado por otro miembro
+    const existing = await sql`
+      SELECT id_miembro 
+      FROM junta_directiva 
+      WHERE rol = ${rol} AND id_miembro != ${id} AND activo = 'S'
+    `;
+
+    if (existing.length > 0) {
+      return res.status(400).json({ 
+        mensaje: `El rol "${rol}" ya está ocupado por otro miembro` 
+      });
+    }
+
+    // Actualizar miembro
+    const result = await sql`
+      UPDATE junta_directiva 
+      SET nombre = ${nombre}, rol = ${rol}
+      WHERE id_miembro = ${id}
+      RETURNING id_miembro, nombre, rol
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).json({ 
+        mensaje: 'Error al actualizar el miembro' 
+      });
+    }
+
+    res.status(200).json({
+      mensaje: 'Miembro actualizado correctamente',
+      id_miembro: parseInt(id),
+      nombre,
+      rol
+    });
+  } catch (error) {
+    console.error('Error al actualizar miembro:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
+
+// Eliminar miembro (soft delete)
+static async eliminarMiembro(req, res) {
+  const { id } = req.params;
+
+  try {
+    // Verificar si el miembro existe
+    const member = await sql`
+      SELECT id_miembro, nombre, rol 
+      FROM junta_directiva 
+      WHERE id_miembro = ${id} AND activo = 'S'
+    `;
+
+    if (member.length === 0) {
+      return res.status(404).json({ 
+        mensaje: 'Miembro no encontrado' 
+      });
+    }
+
+    // Soft delete - marcar como inactivo
+    await sql`
+      UPDATE junta_directiva 
+      SET activo = 'N' 
+      WHERE id_miembro = ${id}
+    `;
+
+    res.status(200).json({
+      mensaje: 'Miembro eliminado correctamente',
+      miembro_eliminado: member[0]
+    });
+  } catch (error) {
+    console.error('Error al eliminar miembro:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
 
 
 }

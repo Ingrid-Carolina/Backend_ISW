@@ -59,6 +59,11 @@ router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthControlle
 router.get('/obtenerenvivo',  AuthController.obtenerenvivo);
 router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
 
+//NuestroEquipo
+router.get('/junta-directiva', AuthController.obtenerJuntaDirectiva); // Sin autenticación para mostrar públicamente
+router.post('/junta-directiva', requireAuth, requireRole('admin'), AuthController.agregarMiembro);
+router.put('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.editarMiembro);
+router.delete('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.eliminarMiembro); 
 
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
