@@ -522,6 +522,7 @@ static async registrarenvivo(req, res) {
       SELECT id_envivo, video_url, channel_url, descripcion, activo 
       FROM envivo 
       ORDER BY id_envivo DESC
+      LIMIT 1
     `;
 
         console.log('Videos cargados!', videos.length)
