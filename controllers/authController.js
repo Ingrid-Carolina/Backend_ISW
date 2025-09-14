@@ -413,7 +413,7 @@ class AuthController {
     } catch (err) {
       res
         .status(500)
-        .send({ mensaje: "Error al crear el usuario: " + err.message });
+        .send({ mensaje: "Error al crear el testimonio: " + err.message });
     }
   }
 
@@ -429,7 +429,7 @@ class AuthController {
       console.error("Error al obtener eventos:", error);
       res
         .status(500)
-        .send({ mensaje: "Error al obtener eventos", error: error.message });
+        .send({ mensaje: "Error al obtener testimonios", error: error.message });
     }
   }
 
@@ -478,8 +478,8 @@ class AuthController {
     }
   }
 
- static async registrarenvivo(req, res) {
-    const { video_url, channel_url, descripcion} = req.body; //destructuramos las propiedades especificas de mi req.body
+static async registrarenvivo(req, res) {
+    const { video_url, channel_url, descripcion, activo} = req.body; //destructuramos las propiedades especificas de mi req.body
 
     try {
       if (!video_url || !channel_url) {
@@ -490,14 +490,14 @@ class AuthController {
 
       const result = await sql`SELECT validar_url( ${video_url} )`;
 
-      if (result[0].validar_url) {
+     
         // Extrae el boolean del arreglo del resultad;
 
         const urldata = {
           video_url: video_url,
           channel_url: channel_url,
           descripcion: descripcion,
-          activo: 'S' // Activar por defecto
+          activo: activo // Activar a true si esta un video live o false si no lo es
 
         };
 
@@ -506,17 +506,13 @@ class AuthController {
         res.status(203).send({
           mensaje: "Su video en vivo fue creado correctamente",
         });
-      } else {
-        res.status(400).send({
-          mensaje: "Error: La url del video en vivo ya existe en la base de datos",
-        });
-      }
     } catch (err) {
       res
         .status(500)
         .send({ mensaje: "Error al crear el video en vivo: " + err.message });
     }
   }
+
 
 
   static async obtenerenvivo(req, res) {
@@ -526,6 +522,7 @@ class AuthController {
       SELECT id_envivo, video_url, channel_url, descripcion, activo 
       FROM envivo 
       ORDER BY id_envivo DESC
+      LIMIT 1
     `;
 
         console.log('Videos cargados!', videos.length)
@@ -610,6 +607,222 @@ class AuthController {
   }
 }
 
+//Nuestroequipo
+//Obtener todos los miembros de la junta directiva
+static async obtenerJuntaDirectiva(req, res) {
+  try {
+    const juntaDirectiva = await sql`
+      SELECT id_miembro, nombre, rol 
+      FROM junta_directiva 
+      WHERE activo = 'S' 
+      ORDER BY 
+        CASE rol
+          WHEN 'Presidente' THEN 1
+          WHEN 'Vicepresidente' THEN 2
+          WHEN 'Secretaria' THEN 3
+          WHEN 'Tesorera' THEN 4
+          WHEN 'Fiscal' THEN 5
+          WHEN 'Vocal I' THEN 6
+          WHEN 'Vocal II' THEN 7
+          WHEN 'Vocal III' THEN 8
+          ELSE 9
+        END
+    `;
+    
+    console.log('Junta directiva obtenida!', juntaDirectiva.length);
+    res.status(200).json(juntaDirectiva);
+  } catch (error) {
+    console.error('Error al obtener junta directiva:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
+
+// Agregar nuevo miembro a la junta directiva
+static async agregarMiembro(req, res) {
+  const { nombre, rol } = req.body;
+  
+  try {
+    // Validaciones
+    if (!nombre || !rol) {
+      return res.status(400).json({ 
+        mensaje: 'El nombre y rol son requeridos' 
+      });
+    }
+
+    // Verificar si el rol ya existe
+    const existing = await sql`
+      SELECT id_miembro 
+      FROM junta_directiva 
+      WHERE rol = ${rol} AND activo = 'S'
+    `;
+
+    if (existing.length > 0) {
+      return res.status(400).json({ 
+        mensaje: `El rol "${rol}" ya está ocupado` 
+      });
+    }
+
+    // Insertar nuevo miembro
+    const result = await sql`
+      INSERT INTO junta_directiva (nombre, rol, activo)
+      VALUES (${nombre}, ${rol}, 'S')
+      RETURNING id_miembro
+    `;
+
+    res.status(201).json({
+      mensaje: 'Miembro agregado correctamente',
+      id_miembro: result[0].id_miembro,
+      nombre,
+      rol
+    });
+  } catch (error) {
+    console.error('Error al agregar miembro:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
+
+// Editar miembro existente
+static async editarMiembro(req, res) {
+  const { id } = req.params;
+  const { nombre, rol } = req.body;
+
+  try {
+    // Validaciones
+    if (!nombre || !rol) {
+      return res.status(400).json({ 
+        mensaje: 'El nombre y rol son requeridos' 
+      });
+    }
+
+    // Verificar si el miembro existe
+    const member = await sql`
+      SELECT id_miembro 
+      FROM junta_directiva 
+      WHERE id_miembro = ${id} AND activo = 'S'
+    `;
+
+    if (member.length === 0) {
+      return res.status(404).json({ 
+        mensaje: 'Miembro no encontrado' 
+      });
+    }
+
+    // Verificar si el rol ya está ocupado por otro miembro
+    const existing = await sql`
+      SELECT id_miembro 
+      FROM junta_directiva 
+      WHERE rol = ${rol} AND id_miembro != ${id} AND activo = 'S'
+    `;
+
+    if (existing.length > 0) {
+      return res.status(400).json({ 
+        mensaje: `El rol "${rol}" ya está ocupado por otro miembro` 
+      });
+    }
+
+    // Actualizar miembro
+    const result = await sql`
+      UPDATE junta_directiva 
+      SET nombre = ${nombre}, rol = ${rol}
+      WHERE id_miembro = ${id}
+      RETURNING id_miembro, nombre, rol
+    `;
+
+    if (result.length === 0) {
+      return res.status(404).json({ 
+        mensaje: 'Error al actualizar el miembro' 
+      });
+    }
+
+    res.status(200).json({
+      mensaje: 'Miembro actualizado correctamente',
+      id_miembro: parseInt(id),
+      nombre,
+      rol
+    });
+  } catch (error) {
+    console.error('Error al actualizar miembro:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
+
+// Eliminar miembro (soft delete)
+static async eliminarMiembro(req, res) {
+  const { id } = req.params;
+
+  try {
+    // Verificar si el miembro existe
+    const member = await sql`
+      SELECT id_miembro, nombre, rol 
+      FROM junta_directiva 
+      WHERE id_miembro = ${id} AND activo = 'S'
+    `;
+
+    if (member.length === 0) {
+      return res.status(404).json({ 
+        mensaje: 'Miembro no encontrado' 
+      });
+    }
+
+    // Soft delete - marcar como inactivo
+    await sql`
+      UPDATE junta_directiva 
+      SET activo = 'N' 
+      WHERE id_miembro = ${id}
+    `;
+
+    res.status(200).json({
+      mensaje: 'Miembro eliminado correctamente',
+      miembro_eliminado: member[0]
+    });
+  } catch (error) {
+    console.error('Error al eliminar miembro:', error);
+    res.status(500).json({ 
+      mensaje: 'Error interno del servidor',
+      error: error.message 
+    });
+  }
+}
+
+static async obtenerusuarios(req, res) {
+   
+    try {
+       const usuarios = await sql`
+      SELECT id, nombre, email, rol 
+      FROM USUARIOS
+    `;
+
+        console.log('Usuarios cargados!', usuarios.length)
+        res.status(203).json( usuarios); //envia el arreglo de los videos cargados en un json
+      
+    } catch (err) {
+      res.status(500).send({ mensaje: "Error al cargar los usuarios: " ,error: err.message });
+    }
+  }
+
+  static async setrol(req, res) {
+  const { id } = req.params;
+  const { rol } = req.body;
+
+  try {
+    const result = await sql`
+      UPDATE USUARIOS SET rol = ${rol} WHERE id = ${id}
+    `;
+
+    res.status(203).send({ mensaje: "Rol actualizado correctamente!" });
+  } catch (err) {
+    res.status(500).send({ mensaje: "Error al setear el rol", error: err.message });
+  }
+}
 
 
 

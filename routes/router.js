@@ -9,6 +9,8 @@ import JugadorController from '../controllers/jugadorController.js';
 import FileUploadController from '../controllers/fileUploadController.js';
 import uploadImages from '../Middlewares/multer.js';
 import ProductosDonacionController from '../controllers/productos_donacionController.js';
+import contactoController from '../controllers/contactoController.js';
+import ProductoController from '../controllers/productoController.js';
 import ImageController from '../controllers/ImageController.js';
 
 
@@ -60,6 +62,11 @@ router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthControlle
 router.get('/obtenerenvivo',  AuthController.obtenerenvivo);
 router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
 
+//NuestroEquipo
+router.get('/junta-directiva', AuthController.obtenerJuntaDirectiva); // Sin autenticación para mostrar públicamente
+router.post('/junta-directiva', requireAuth, requireRole('admin'), AuthController.agregarMiembro);
+router.put('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.editarMiembro);
+router.delete('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.eliminarMiembro); 
 
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
@@ -70,13 +77,41 @@ router.post('/upload', requireAuth, requireRole('admin'), uploadImages.single('f
 
 //router.post('/health', SomeController.someFunction);
 
+/*
 // productos donación
 router.get('/productos', ProductosDonacionController.getProductos);
 router.post('/productos', requireAuth, requireRole('admin'), ProductosDonacionController.addProducto);
 router.put('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
 router.delete('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 router.post('/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
-router.get('/images', ImageController.getImages);
+*/
+
+
+
+// productos tienda
+router.get("/tienda/productos", ProductoController.getProductos);
+router.get("/tienda/productos/:id", ProductoController.getProductoById);
+router.post("/tienda/agregarproducto", requireAuth, requireRole("admin"), ProductoController.addProducto);
+router.put("/tienda/modificarproducto/:id", requireAuth, requireRole("admin"), ProductoController.actualizarProducto);
+router.delete("/tienda/eliminarproducto/:id", requireAuth, requireRole("admin"), ProductoController.eliminarProducto);
+
+// productos donación
+router.get('/donaciones/productos', ProductosDonacionController.getProductos);
+router.post('/donaciones/productos', requireAuth, requireRole('admin'), ProductosDonacionController.addProducto);
+router.put('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
+router.delete('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
+router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
+
+
+
+//contacto
+router.get('/contacto', contactoController.obtener);
+router.put('/contacto',requireAuth, requireRole('admin'), contactoController.actualizar);
+
+//Promote Usuario
+
+router.get('/obtenerusuarios', AuthController.obtenerusuarios);
+router.put('/usuario/:id', AuthController.setrol);router.get('/images', ImageController.getImages);
 router.put('/images', requireAuth, requireRole('admin'), ImageController.updateImage);
 
 export default router;
