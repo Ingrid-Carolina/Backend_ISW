@@ -86,4 +86,9 @@ router.post('/registrardonacion', DonacionesFormValidator, ProductosDonacionCont
 router.get('/contacto', contactoController.obtener);
 router.put('/contacto',requireAuth, requireRole('admin'), contactoController.actualizar);
 
+//Promote Usuario
+
+router.get('/obtenerusuarios', AuthController.obtenerusuarios);
+router.put('/usuario/:id', AuthController.setrol);
+
 export default router;

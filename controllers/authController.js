@@ -413,7 +413,7 @@ class AuthController {
     } catch (err) {
       res
         .status(500)
-        .send({ mensaje: "Error al crear el usuario: " + err.message });
+        .send({ mensaje: "Error al crear el testimonio: " + err.message });
     }
   }
 
@@ -429,7 +429,7 @@ class AuthController {
       console.error("Error al obtener eventos:", error);
       res
         .status(500)
-        .send({ mensaje: "Error al obtener eventos", error: error.message });
+        .send({ mensaje: "Error al obtener testimonios", error: error.message });
     }
   }
 
@@ -478,8 +478,8 @@ class AuthController {
     }
   }
 
- static async registrarenvivo(req, res) {
-    const { video_url, channel_url, descripcion} = req.body; //destructuramos las propiedades especificas de mi req.body
+static async registrarenvivo(req, res) {
+    const { video_url, channel_url, descripcion, activo} = req.body; //destructuramos las propiedades especificas de mi req.body
 
     try {
       if (!video_url || !channel_url) {
@@ -490,14 +490,14 @@ class AuthController {
 
       const result = await sql`SELECT validar_url( ${video_url} )`;
 
-      if (result[0].validar_url) {
+     
         // Extrae el boolean del arreglo del resultad;
 
         const urldata = {
           video_url: video_url,
           channel_url: channel_url,
           descripcion: descripcion,
-          activo: 'S' // Activar por defecto
+          activo: activo // Activar a true si esta un video live o false si no lo es
 
         };
 
@@ -506,17 +506,13 @@ class AuthController {
         res.status(203).send({
           mensaje: "Su video en vivo fue creado correctamente",
         });
-      } else {
-        res.status(400).send({
-          mensaje: "Error: La url del video en vivo ya existe en la base de datos",
-        });
-      }
     } catch (err) {
       res
         .status(500)
         .send({ mensaje: "Error al crear el video en vivo: " + err.message });
     }
   }
+
 
 
   static async obtenerenvivo(req, res) {
@@ -795,6 +791,38 @@ static async eliminarMiembro(req, res) {
     });
   }
 }
+
+static async obtenerusuarios(req, res) {
+   
+    try {
+       const usuarios = await sql`
+      SELECT id, nombre, email, rol 
+      FROM USUARIOS
+    `;
+
+        console.log('Usuarios cargados!', usuarios.length)
+        res.status(203).json( usuarios); //envia el arreglo de los videos cargados en un json
+      
+    } catch (err) {
+      res.status(500).send({ mensaje: "Error al cargar los usuarios: " ,error: err.message });
+    }
+  }
+
+  static async setrol(req, res) {
+  const { id } = req.params;
+  const { rol } = req.body;
+
+  try {
+    const result = await sql`
+      UPDATE USUARIOS SET rol = ${rol} WHERE id = ${id}
+    `;
+
+    res.status(203).send({ mensaje: "Rol actualizado correctamente!" });
+  } catch (err) {
+    res.status(500).send({ mensaje: "Error al setear el rol", error: err.message });
+  }
+}
+
 
 
 }
