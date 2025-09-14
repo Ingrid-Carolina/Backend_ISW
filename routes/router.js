@@ -10,6 +10,7 @@ import FileUploadController from '../controllers/fileUploadController.js';
 import uploadImages from '../Middlewares/multer.js';
 import ProductosDonacionController from '../controllers/productos_donacionController.js';
 import contactoController from '../controllers/contactoController.js';
+import ProductoController from '../controllers/productoController.js';
 
 
 const router = express.Router();
@@ -75,12 +76,32 @@ router.post('/upload', requireAuth, requireRole('admin'), uploadImages.single('f
 
 //router.post('/health', SomeController.someFunction);
 
+/*
 // productos donación
 router.get('/productos', ProductosDonacionController.getProductos);
 router.post('/productos', requireAuth, requireRole('admin'), ProductosDonacionController.addProducto);
 router.put('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
 router.delete('/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 router.post('/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
+*/
+
+
+
+// productos tienda
+router.get("/tienda/productos", ProductoController.getProductos);
+router.get("/tienda/productos/:id", ProductoController.getProductoById);
+router.post("/tienda/agregarproducto", requireAuth, requireRole("admin"), ProductoController.addProducto);
+router.put("/tienda/modificarproducto/:id", requireAuth, requireRole("admin"), ProductoController.actualizarProducto);
+router.delete("/tienda/eliminarproducto/:id", requireAuth, requireRole("admin"), ProductoController.eliminarProducto);
+
+// productos donación
+router.get('/donaciones/productos', ProductosDonacionController.getProductos);
+router.post('/donaciones/productos', requireAuth, requireRole('admin'), ProductosDonacionController.addProducto);
+router.put('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
+router.delete('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
+router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
+
+
 
 //contacto
 router.get('/contacto', contactoController.obtener);
