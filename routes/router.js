@@ -12,7 +12,8 @@ import ProductosDonacionController from '../controllers/productos_donacionContro
 import contactoController from '../controllers/contactoController.js';
 import ProductoController from '../controllers/productoController.js';
 import ImageController from '../controllers/ImageController.js';
-
+import OrdenController from '../controllers/ordenController.js';
+import DetalleOrdenController from '../controllers/detalleOrdenController.js';
 
 const router = express.Router();
 
@@ -101,6 +102,21 @@ router.post('/donaciones/productos', requireAuth, requireRole('admin'), Producto
 router.put('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
 router.delete('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
+
+
+// ordenes
+router.get('/ordenes', OrdenController.getOrdenes);
+router.get('/ordenes/:id', OrdenController.getOrdenById);
+router.post('/agregarorden', requireAuth, OrdenController.addOrden);
+router.put('/modificarorden/:id', requireAuth, OrdenController.actualizarOrden);
+router.delete('/eliminarorden/:id', requireAuth, requireRole('admin'), OrdenController.eliminarOrden);
+
+// detalle orden
+router.get('/detalles', DetalleOrdenController.getDetalles);
+router.get('/detalles/:id', DetalleOrdenController.getDetalleById);
+router.post('/agregardetalle', requireAuth, DetalleOrdenController.addDetalle);
+router.put('/modificardetalle/:id', requireAuth, DetalleOrdenController.actualizarDetalle);
+router.delete('/eliminardetalle/:id', requireAuth, requireRole('admin'), DetalleOrdenController.eliminarDetalle);
 
 
 
