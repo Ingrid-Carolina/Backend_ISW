@@ -11,9 +11,11 @@ import uploadImages from '../Middlewares/multer.js';
 import ProductosDonacionController from '../controllers/productos_donacionController.js';
 import contactoController from '../controllers/contactoController.js';
 import ProductoController from '../controllers/productoController.js';
-import ImageController from '../controllers/ImageController.js';
+import HomeImageController from '../controllers/HomeImageController.js';
 import OrdenController from '../controllers/ordenController.js';
 import DetalleOrdenController from '../controllers/detalleOrdenController.js';
+import AliadosImageController from '../controllers/TestimoniosImageController.js';
+import TestimoniosImageController from '../controllers/TestimoniosImageController.js';
 
 const router = express.Router();
 
@@ -75,6 +77,9 @@ router.get('/jugadores', JugadorController.getJugadores);
 
 //subir imagenes
 router.post('/upload', requireAuth, requireRole('admin'), uploadImages.single('file'), FileUploadController.uploadFile);
+router.put('/images', requireAuth, requireRole('admin'), HomeImageController.updateImage);
+router.put('/aliadoimages', requireAuth, requireRole('admin'), AliadosImageController.updateImage);
+router.put('/testimonioimages', requireAuth, requireRole('admin'), TestimoniosImageController.updateImage);
 
 //router.post('/health', SomeController.someFunction);
 
@@ -127,7 +132,7 @@ router.put('/contacto',requireAuth, requireRole('admin'), contactoController.act
 //Promote Usuario
 
 router.get('/obtenerusuarios', AuthController.obtenerusuarios);
-router.put('/usuario/:id', AuthController.setrol);router.get('/images', ImageController.getImages);
-router.put('/images', requireAuth, requireRole('admin'), ImageController.updateImage);
+router.put('/usuario/:id', AuthController.setrol);router.get('/images', HomeImageController.getImages);
+
 
 export default router;

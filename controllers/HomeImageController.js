@@ -1,9 +1,6 @@
-// ImageController.js
 import { sql } from '../config/postgre.js';
-// Asumiendo que usas Multer para manejar la subida de archivos
-// Necesitarás instalarlo: npm install multer
 import multer from 'multer';
-import path from 'path'; // Para manejar rutas de archivos
+import path from 'path'; 
 
 // Configuración de Multer (ejemplo básico)
 const storage = multer.diskStorage({
@@ -20,7 +17,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single('file'); // 'file' debe coincidir con el nombre en formData del frontend
 
-class ImageController {
+class HomeImageController {
     static async getImages(req, res) {
       try {
         console.log('Intentando obtener imágenes de la tabla home_images...');
@@ -88,4 +85,4 @@ class ImageController {
     }
 }
 
-export default ImageController;
+export default HomeImageController;
