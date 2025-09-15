@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gracias por tu donación</title>
+    <style>
+        @media (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                padding: 0 16px !important;
+            }
+
+            .h1 {
+                font-size: 24px !important;
+                line-height: 30px !important;
+            }
+
+            .content {
+                padding: 20px !important;
+            }
+
+            .cta {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="
+      margin: 0;
+      padding: 0;
+      background: #eef3fb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial,
+        sans-serif;
+      color: #0c005a;
+    ">
+    <!-- Wrapper -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+        style="background: #eef3fb; padding: 24px 0">
+        <tr>
+            <td align="center">
+                <!-- Card -->
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="container"
+                    style="
+              width: 600px;
+              max-width: 600px;
+              background: #ffffff;
+              border-radius: 12px;
+              box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+              overflow: hidden;
+            ">
+                    <!-- Header-->
+                    <tr>
+                        <td align="center" style="background: #0c005a; padding: 28px 20px">
+                            <!-- Logo (aun no funcional solo es placeholder) -->
+                            <img src="https://raw.githubusercontent.com/placeholderlogos/pilotos-baseball-logo/main/logo.png"
+                                alt="Pilotos FAH" width="72" height="72" style="
+                    display: block;
+                    border: 0;
+                    outline: none;
+                    text-decoration: none;
+                    border-radius: 50%;
+                    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+                    margin-bottom: 12px;
+                  " />
+                            <div style="
+                    color: #ffffff;
+                    font-weight: 800;
+                    font-size: 22px;
+                    letter-spacing: 0.5px;
+                  ">
+                                PILOTOS&nbsp;FAH
+                            </div>
+                            <div style="color: #b9c4ff; font-size: 12px; margin-top: 4px">
+                                Asocación de Deporte Menor Pilotos de Honduras
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td class="content" style="padding: 28px 32px">
+                            <h1 class="h1" style="
+                    margin: 0 0 12px;
+                    font-size: 26px;
+                    line-height: 34px;
+                    color: #0c005a;
+                  ">
+                                ¡Gracias por tu aporte,
+                                <span style="color: #e06c14">{{nombre}}</span>!
+                            </h1>
+                            <p style="margin: 0; color: #2a2a2a; line-height: 1.6">
+                                Hemos recibido tu solicitud de donación para
+                                <strong>Pilotos FAH</strong>. Tu apoyo nos ayuda a impulsar el
+                                desarrollo de nuestros jugadores y actividades. En breve nos
+                                pondremos en contacto para coordinar la entrega.
+                            </p>
+
+                            <!-- Resumen -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="
+                    margin: 20px 0 6px;
+                    background: #f7f9ff;
+                    border: 1px solid #e3e9ff;
+                    border-radius: 10px;
+                  ">
+                                <tr>
+                                    <td style="padding: 16px 18px">
+                                        <div style="
+                          font-weight: 700;
+                          color: #0c005a;
+                          margin-bottom: 8px;
+                        ">
+                                            Resumen de tu donación
+                                        </div>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+                                            width="100%">
+                                            <tr>
+                                                <td style="padding: 6px 0; width: 120px; color: #5b6da8">
+                                                    Día:
+                                                </td>
+                                                <td style="padding: 6px 0; color: #1a1a1a">
+                                                    <strong>{{dia}}</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; color: #5b6da8">
+                                                    Horario:
+                                                </td>
+                                                <td style="padding: 6px 0; color: #1a1a1a">
+                                                    <strong>{{horario}}</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="
+                              padding: 6px 0;
+                              color: #5b6da8;
+                              vertical-align: top;
+                            ">
+                                                    Detalle:
+                                                </td>
+                                                <td style="padding: 6px 0; color: #1a1a1a">
+                                                    {{descripcion}}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- CTA / Ayuda -->
+                            <p style="margin: 0 0 18px; color: #2a2a2a; line-height: 1.6">
+                                Si tienes dudas, puedes responder a este correo o escribirnos
+                                en cualquier momento.
+                            </p>
+
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="left"
+                                style="margin: 0 0 6px">
+                                <tr>
+                                    <td>
+                                        <a class="cta" href="mailto:pilotoshn@outlook.com" style="
+                          background: #e06c14;
+                          color: #ffffff;
+                          text-decoration: none;
+                          padding: 12px 18px;
+                          border-radius: 8px;
+                          font-weight: 700;
+                          display: inline-block;
+                        ">
+                                            Contactanos
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Divider -->
+                            <div style="
+                    clear: both;
+                    height: 1px;
+                    background: #eef1ff;
+                    margin: 22px 0;
+                  "></div>
+
+                            <!-- Datos de contacto -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="
+                        padding: 0;
+                        color: #5a5a5a;
+                        font-size: 13px;
+                        line-height: 1.6;
+                      ">
+                                        <strong>Contacto:</strong>
+                                        <a href="mailto:pilotoshn@outlook.com"
+                                            style="color: #0c005a; text-decoration: none">pilotoshn@outlook.com</a>
+                                        ·
+                                        <a href="tel:+50499182456"
+                                            style="color: #0c005a; text-decoration: none">+504&nbsp;9918-2456</a><br />
+                                        <a href="https://pilotos-baseball.com"
+                                            style="color: #0c005a; text-decoration: none">https://pilotos-baseball.com</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="
+                  background: #f4f6ff;
+                  padding: 16px 24px;
+                  color: #6c6c6c;
+                  font-size: 12px;
+                ">
+                            © <span style="white-space: nowrap">{{year}}</span> Asocación de
+                            Deporte Menor Pilotos de Honduras<strong>PILOTOS – FAH</strong>.
+                            Todos los derechos reservados.
+                        </td>
+                    </tr>
+                </table>
+                <!-- /Card -->
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
