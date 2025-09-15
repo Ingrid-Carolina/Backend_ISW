@@ -1,4 +1,4 @@
-import { sql } from "../config/postgre";
+import { sql } from "../config/postgre.js";
 import multer from "multer";
 import path from 'path';
 const storage = multer.diskStorage({
