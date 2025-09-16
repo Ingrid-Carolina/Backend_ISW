@@ -113,7 +113,9 @@ router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosD
 
 // ordenes
 router.get('/ordenes', OrdenController.getOrdenes);
+router.get('/ordenes/:idorden/productos_comprados', OrdenController.getProductosbyID);
 router.get('/ordenes/:id', OrdenController.getOrdenById);
+router.put('/orden/:idorden', OrdenController.setestado);
 router.post('/agregarorden', requireAuth, OrdenController.addOrden);
 router.put('/modificarorden/:id', requireAuth, OrdenController.actualizarOrden);
 router.delete('/eliminarorden/:id', requireAuth, requireRole('admin'), OrdenController.eliminarOrden);
@@ -139,9 +141,16 @@ router.get('/obtenerusuarios', AuthController.obtenerusuarios);
 router.put('/usuario/:id', AuthController.setrol);router.get('/images', HomeImageController.getImages);
 
 //Categorias
-router.get('/images', CategoriasImagesController.getImages);
-router.post('/upload', CategoriasImagesController.uploadImage);
-router.put('/images', CategoriasImagesController.updateImage);
+router.get('/images', CategoriaImageController.getImages);
+router.post('/upload', CategoriaImageController.uploadImage);
+router.put('/images', CategoriaImageController.updateImage);
+
+//obtener uid
+router.get('/obteneruid', requireAuth, AuthController.obtenerUid);
+
+//obtener ultima orden
+router.get('/ultimaorden',OrdenController.getultimaorden);
+
 
 
 export default router;
