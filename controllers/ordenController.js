@@ -5,6 +5,7 @@ import { sql } from "../config/postgre.js";
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import admin from "../config/firebase-admin.js";
+import enviarCorreoCompra from "../utils/compracorreo.js";
 
 class OrdenController {
   // Obtener todas las órdenes (con total calculado)
@@ -88,8 +89,9 @@ class OrdenController {
       VALUES (${uid})
       RETURNING idorden
     `;
+   
 
-    const orden_id = result[0].idorden; // Acceso corregido 
+    const orden_id = result[0].idorden; // Acceso corregido la ultima orden agregada
 
     // Insertar cada producto individualmente en la tabla DETALLEORDENR
     for (const item of cartItems) {
@@ -98,6 +100,8 @@ class OrdenController {
         VALUES (${orden_id}, ${item.idproducto}, ${item.cantidad}, ${item.precio_unitario})
       `;
     }
+
+     await enviarCorreoCompra({ idorden: orden_id, cartItems });
 
     return res.status(201).json({ mensaje: "Orden creada exitosamente", orden_id });
   } catch (error) {
