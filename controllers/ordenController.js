@@ -10,9 +10,9 @@ import enviarCorreoCompra from "../utils/compracorreo.js";
 class OrdenController {
   // Obtener todas las órdenes (con total calculado)
   static async getProductosbyID(req, res) {
-  const { idorden } = req.params;
-  try {
-    const productos_comprados = await sql`
+    const { idorden } = req.params;
+    try {
+      const productos_comprados = await sql`
       SELECT 
         p.nombre_producto,
         d.cantidad,
@@ -29,28 +29,26 @@ class OrdenController {
       ORDER BY 
         p.nombre_producto ASC;
     `;
-    res.status(200).json(productos_comprados);
-  } catch (e) {
-    console.error(`Error al obtener productos: ${e}`);
-    res.status(500).json({ error: `Error al obtener productos: ${e}` });
+      res.status(200).json(productos_comprados);
+    } catch (e) {
+      console.error(`Error al obtener productos: ${e}`);
+      res.status(500).json({ error: `Error al obtener productos: ${e}` });
+    }
   }
-}
-
 
   static async getOrdenes(req, res) {
-  try {
-    const ordenes = await sql`
+    try {
+      const ordenes = await sql`
       SELECT o.idorden, o.fecha, o.estado, u.nombre AS nombre_usuario, u.email
       FROM ordenes o
       JOIN usuarios u ON o.usuario_id = u.id;
     `;
-    res.status(200).json({ ordenes });
-  } catch (error) {
-    console.error("Error al obtener ordenes:", error.message);
-    res.status(500).json({ error: "Error al obtener ordenes" });
+      res.status(200).json({ ordenes });
+    } catch (error) {
+      console.error("Error al obtener ordenes:", error.message);
+      res.status(500).json({ error: "Error al obtener ordenes" });
+    }
   }
-}
-
 
   // Obtener una orden por ID (con total calculado)
   static async getOrdenById(req, res) {
@@ -76,40 +74,56 @@ class OrdenController {
 
   // Crear orden (solo guarda usuario, fecha y estado inicial)
   static async addOrden(req, res) {
-  const {uid, cartItems } = req.body;
+    const { uid, cartItems } = req.body;
 
-  if (!Array.isArray(cartItems) || cartItems.length === 0) {
-  return res.status(400).json({ mensaje: "No hay productos en la orden" });
-}
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      return res.status(400).json({ mensaje: "No hay productos en la orden" });
+    }
 
-  try {
-
-    const result = await sql`
+    try {
+      const result = await sql`
       INSERT INTO ordenes (usuario_id)
       VALUES (${uid})
       RETURNING idorden
     `;
-   
 
-    const orden_id = result[0].idorden; // Acceso corregido la ultima orden agregada
+      const orden_id = result[0].idorden; // Acceso corregido la ultima orden agregada
 
-    // Insertar cada producto individualmente en la tabla DETALLEORDENR
-    for (const item of cartItems) {
-      await sql`
+      // Insertar cada producto individualmente en la tabla DETALLEORDENR
+      for (const item of cartItems) {
+        await sql`
         INSERT INTO DETALLEORDEN (orden_id, producto_id, cantidad, precio_unitario)
         VALUES (${orden_id}, ${item.idproducto}, ${item.cantidad}, ${item.precio_unitario})
       `;
+      }
+
+      // Obtener datos del usuario (email / nombre) para notificación al cliente
+      const userRows = await sql`
+        SELECT nombre, email
+        FROM usuarios
+        WHERE id = ${uid}
+        LIMIT 1
+      `;
+      const cliente = userRows[0] || {};
+      const nombreCliente = cliente.nombre || null;
+      const emailCliente = cliente.email || null;
+
+      // Enviar correos (admin + cliente)
+      await enviarCorreoCompra({
+        idorden: orden_id,
+        cartItems,
+        nombre: nombreCliente,
+        email: emailCliente,
+      });
+
+      return res
+        .status(201)
+        .json({ mensaje: "Orden creada exitosamente", orden_id });
+    } catch (error) {
+      console.error("Error al crear la orden:", error.message || error.stack);
+      return res.status(500).json({ mensaje: error.message });
     }
-
-     await enviarCorreoCompra({ idorden: orden_id, cartItems });
-
-    return res.status(201).json({ mensaje: "Orden creada exitosamente", orden_id });
-  } catch (error) {
-    console.error("Error al crear la orden:", error.message|| error.stack);
-    return res.status(500).json({ mensaje: error.message });
   }
-}
-
 
   // Actualizar estado de la orden, solo el admin lo puede realizar
   static async actualizarOrden(req, res) {
@@ -124,11 +138,12 @@ class OrdenController {
         RETURNING *
       `;
 
-      if (result.length === 0) return res.status(404).json({ mensaje: "Orden no encontrada" });
+      if (result.length === 0)
+        return res.status(404).json({ mensaje: "Orden no encontrada" });
 
       res.status(200).json({
         mensaje: "Orden actualizada correctamente",
-        orden: result[0]
+        orden: result[0],
       });
     } catch (e) {
       console.error(`Error al actualizar orden: ${e}`);
@@ -144,42 +159,48 @@ class OrdenController {
       res.status(200).json({ mensaje: "Orden eliminada correctamente!" });
     } catch (e) {
       console.error(`Error al eliminar orden: ${e}`);
-      res.status(500).json({ mensaje: "Error al eliminar orden", error: e.message });
+      res
+        .status(500)
+        .json({ mensaje: "Error al eliminar orden", error: e.message });
     }
   }
 
   static async setestado(req, res) {
     const { id } = req.params;
     const { estado } = req.body;
-  
+
     try {
       const result = await sql`
         UPDATE ORDENES SET estado = ${estado} WHERE idorden = ${id}
       `;
-  
+
       res.status(203).send({ mensaje: "Estado actualizado correctamente!" });
     } catch (err) {
-      res.status(500).send({ mensaje: "Error al setear el estado de la orden", error: err.message });
+      res
+        .status(500)
+        .send({
+          mensaje: "Error al setear el estado de la orden",
+          error: err.message,
+        });
     }
   }
 
-   static async getultimaorden(req, res) {
-  
+  static async getultimaorden(req, res) {
     try {
       const result = await sql`
         SELECT idorden FROM ORDENES ORDER BY idorden DESC LIMIT 1;
       `;
-  
+
       res.status(203).send(result);
     } catch (err) {
-      res.status(500).send({ mensaje: "Error al obtener el numero de la ultima orden", error: err.message });
+      res
+        .status(500)
+        .send({
+          mensaje: "Error al obtener el numero de la ultima orden",
+          error: err.message,
+        });
     }
   }
-
-
-
 }
-
-
 
 export default OrdenController;

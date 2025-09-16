@@ -19,14 +19,20 @@ function createTransporter() {
   });
 }
 
-/** ---------- Template de la compra (HTML con productos) ---------- */
-async function renderCompraTemplate(data) {
+function splitRecipients(envVarValue) {
+  return (envVarValue || "")
+    .split(/[;,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** ---------- HTML Admin ---------- */
+async function renderAdminTemplate(data) {
   const templatePath = path.join(__dirname, "../templates/correo-orden.html");
   let html = await readFile(templatePath, "utf-8");
-
   const safe = (v, fallback = "-") => (v ?? "").toString().trim() || fallback;
 
-  // Construir la tabla de productos
+  // Construir tabla de productos
   let productosHtml = "";
   if (Array.isArray(data.cartItems) && data.cartItems.length > 0) {
     productosHtml = `
@@ -41,18 +47,13 @@ async function renderCompraTemplate(data) {
           </tr>
         </thead>
         <tbody>
-          ${data.cartItems
-            .map(
-              (item) => `
-              <tr>
-                <td>${safe(item.nombre_producto)}</td>
-                <td align="center">${safe(item.cantidad)}</td>
-                <td align="right">L. ${Number(item.precio_unitario).toFixed(2)}</td>
-                <td align="right">L. ${(item.cantidad * item.precio_unitario).toFixed(2)}</td>
-              </tr>
-            `
-            )
-            .join("")}
+          ${data.cartItems.map((item) => `
+            <tr>
+              <td>${safe(item.nombre_producto)}</td>
+              <td align="center">${safe(item.cantidad)}</td>
+              <td align="right">L. ${Number(item.precio_unitario).toFixed(2)}</td>
+              <td align="right">L. ${(item.cantidad * item.precio_unitario).toFixed(2)}</td>
+            </tr>`).join("")}
         </tbody>
       </table>
     `;
@@ -60,39 +61,97 @@ async function renderCompraTemplate(data) {
     productosHtml = "<em>(No se encontraron productos en la orden)</em>";
   }
 
-  // reemplazos
   html = html
-  .replace(/{{nombre}}/g, safe(data.nombre, "amigo/a"))
+    .replace(/{{nombre}}/g, safe(data.nombre, "amigo/a"))
     .replace(/{{dia}}/g, safe(data.dia))
     .replace(/{{horario}}/g, safe(data.horario))
     .replace(/{{descripcion}}/g, safe(data.descripcion, "(sin detalle)"))
     .replace(/{{year}}/g, String(new Date().getFullYear()))
-    .replace(/{{productos}}/g, productosHtml) 
+    .replace(/{{productos}}/g, productosHtml);
 
   return html;
 }
 
-/**
- * Esta funcion solo envía el correo al administrador
- */
+/** ---------- HTML Cliente---------- */
+async function renderClienteTemplate(data) {
+  const templatePath = path.join(__dirname, "../templates/correo-compra-cliente.html");
+  let html = await readFile(templatePath, "utf-8");
+
+  const total = Array.isArray(data.cartItems)
+    ? data.cartItems.reduce((acc, it) => acc + Number(it.precio_unitario) * Number(it.cantidad), 0)
+    : 0;
+  const impuesto = total * 0.15;
+  const subtotal = total - impuesto;
+
+  // Tabla productos
+  const productosHtml = Array.isArray(data.cartItems) && data.cartItems.length > 0
+    ? `
+      <table role="presentation" cellspacing="0" cellpadding="6" border="1" width="100%" 
+        style="border-collapse:collapse;border:1px solid #ddd;font-size:14px;">
+        <thead style="background:#f4f6ff;color:#0c005a;">
+          <tr>
+            <th align="left">Producto</th>
+            <th align="center">Cant.</th>
+            <th align="right">P. Unitario</th>
+            <th align="right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.cartItems.map((it) => `
+            <tr>
+              <td>${it.nombre_producto}</td>
+              <td align="center">${it.cantidad}</td>
+              <td align="right">L. ${Number(it.precio_unitario).toFixed(2)}</td>
+              <td align="right">L. ${(Number(it.precio_unitario) * Number(it.cantidad)).toFixed(2)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `
+    : "<em>(No se encontraron productos en la orden)</em>";
+
+  html = html
+    .replace(/{{nombre}}/g, String(data.nombre || "amigo/a"))
+    .replace(/{{idorden}}/g, String(data.idorden || "-"))
+    .replace(/{{year}}/g, String(new Date().getFullYear()))
+    .replace(/{{productos}}/g, productosHtml)
+    .replace(/{{subtotal}}/g, subtotal.toFixed(2))
+    .replace(/{{impuesto}}/g, impuesto.toFixed(2))
+    .replace(/{{total}}/g, total.toFixed(2));
+
+  return html;
+}
+
 export default async function enviarCorreoCompra(datos) {
   const transporter = createTransporter();
+  const fromName = process.env.EMAIL_FROM_NAME || "Pilotos FAH";
+  const from = `"${fromName}" <${process.env.EMAIL_USER}>`;
+  const replyTo = process.env.EMAIL_REPLY_TO || process.env.EMAIL_USER;
 
-  const from = `"Pilotos FAH" <${process.env.EMAIL_USER}>`;
-  const adminRecipients = (process.env.EMAIL_TO || '')
-  .split(/[;,]/)        // admite comas o punto y coma
-  .map(s => s.trim())
-  .filter(Boolean);
+  /* ---- Admin ---- */
+  const adminRecipients = splitRecipients(process.env.EMAIL_TO);
+  if (adminRecipients.length) {
+    const htmlAdmin = await renderAdminTemplate(datos);
+    await transporter.sendMail({
+      from,
+      to: adminRecipients,
+      subject: `Nueva compra #${datos.idorden || "-"}`,
+      html: htmlAdmin,
+      text: `Nueva compra #${datos.idorden || "-"} con ${datos.cartItems?.length || 0} productos.`,
+      replyTo,
+    });
+  }
 
-  const htmlAdmin = await renderCompraTemplate(datos);
-
-  await transporter.sendMail({
-    from,
-    to: adminRecipients,
-  subject: `Nueva compra #${datos.idorden || "-"}`,
-    html: htmlAdmin,
-    text: `Nueva compra #${datos.idorden || "-"} con ${
-      datos.cartItems?.length || 0
-    } productos.`,
-  });
+  /* ---- Cliente ---- */
+  if (datos?.email) {
+    const htmlCliente = await renderClienteTemplate(datos);
+    await transporter.sendMail({
+      from,
+      to: datos.email,
+      subject: `Confirmación de compra #${datos.idorden || "-"}`,
+      html: htmlCliente,
+      text: `Hola ${datos.nombre || ""}, confirmamos tu compra #${datos.idorden || "-"}.`,
+      replyTo,
+    });
+  }
 }
