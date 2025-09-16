@@ -16,6 +16,7 @@ import OrdenController from '../controllers/ordenController.js';
 import DetalleOrdenController from '../controllers/detalleOrdenController.js';
 import AliadosImageController from '../controllers/TestimoniosImageController.js';
 import TestimoniosImageController from '../controllers/TestimoniosImageController.js';
+import ContactoImageController from '../controllers/ContactoImageController.js';
 
 const router = express.Router();
 
@@ -128,6 +129,8 @@ router.delete('/eliminardetalle/:id', requireAuth, requireRole('admin'), Detalle
 //contacto
 router.get('/contacto', contactoController.obtener);
 router.put('/contacto',requireAuth, requireRole('admin'), contactoController.actualizar);
+router.get('/contactoimages', ContactoImageController.getImages);
+router.put('/contactoimages', requireAuth, requireRole('admin'), ContactoImageController.updateImage);
 
 //Promote Usuario
 
