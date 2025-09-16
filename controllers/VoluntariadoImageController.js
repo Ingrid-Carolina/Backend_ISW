@@ -1,0 +1,76 @@
+import { sql } from '../config/postgre.js';
+import multer from 'multer';
+import path from 'path';
+
+// Configuración de Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage }).single('file');
+
+class VoluntariadoImageController {
+  // Obtener todas las imágenes
+  static async getImages(req, res) {
+    try {
+      const result = await sql`SELECT type, url FROM voluntariado_images`;
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al obtener imágenes:', error);
+      res.status(500).json({ error: 'Error al obtener imágenes de Voluntariado.' });
+    }
+  }
+
+  // Actualizar URL de imagen
+  static async updateImage(req, res) {
+    try {
+      const { type, url } = req.body;
+      if (!type || !url) {
+        return res.status(400).json({ error: 'Se requieren el tipo y la URL de la imagen.' });
+      }
+
+      await sql`
+        INSERT INTO voluntariado_images (type, url)
+        VALUES (${type}, ${url})
+        ON CONFLICT (type) DO UPDATE SET url = EXCLUDED.url
+      `;
+
+      res.json({ message: 'Imagen actualizada correctamente.' });
+    } catch (error) {
+      console.error('Error al actualizar imagen:', error);
+      res.status(500).json({ error: 'Error al actualizar la imagen en la base de datos.' });
+    }
+  }
+
+  // Subir imagen al servidor
+  static async uploadImage(req, res) {
+    upload(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        console.error('Error de Multer:', err);
+        return res.status(500).json({ error: 'Error al subir el archivo.' });
+      } else if (err) {
+        console.error('Error desconocido al subir archivo:', err);
+        return res.status(500).json({ error: 'Error desconocido al subir archivo.' });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No se proporcionó ningún archivo.' });
+      }
+
+      const imageUrl = `/uploads/${req.file.filename}`;
+
+      res.status(200).json({
+        message: 'Imagen subida correctamente.',
+        url: imageUrl
+      });
+    });
+  }
+}
+
+export default VoluntariadoImageController;
