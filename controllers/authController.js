@@ -824,6 +824,19 @@ static async obtenerusuarios(req, res) {
   }
 }
 
+static async obtenerUid(req, res) {
+  try {
+    const uid = req.uid; // <- lo inyecta tu middleware de auth
+    if (!uid) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
+    return res.status(200).json({ id: uid });
+  } catch (error) {
+    console.error("Error en obtenerUid:", error);
+    return res.status(500).json({ mensaje: "Error al obtener id de usuario" });
+  }
+}
+
 
 
 }
