@@ -109,12 +109,21 @@ class OrdenController {
       const emailCliente = cliente.email || null;
 
       // Enviar correos (admin + cliente)
-      await enviarCorreoCompra({
-        idorden: orden_id,
-        cartItems,
-        nombre: nombreCliente,
-        email: emailCliente,
-      });
+      (async () => {
+        try {
+          await enviarCorreoCompra({
+            idorden: orden_id,
+            cartItems,
+            nombre: nombreCliente,
+            email: emailCliente,
+          });
+        } catch (mailErr) {
+          console.error(
+            "Error al enviar correo de compra:",
+            mailErr?.message || mailErr
+          );
+        }
+      })();
 
       return res
         .status(201)
@@ -176,12 +185,10 @@ class OrdenController {
 
       res.status(203).send({ mensaje: "Estado actualizado correctamente!" });
     } catch (err) {
-      res
-        .status(500)
-        .send({
-          mensaje: "Error al setear el estado de la orden",
-          error: err.message,
-        });
+      res.status(500).send({
+        mensaje: "Error al setear el estado de la orden",
+        error: err.message,
+      });
     }
   }
 
@@ -193,12 +200,10 @@ class OrdenController {
 
       res.status(203).send(result);
     } catch (err) {
-      res
-        .status(500)
-        .send({
-          mensaje: "Error al obtener el numero de la ultima orden",
-          error: err.message,
-        });
+      res.status(500).send({
+        mensaje: "Error al obtener el numero de la ultima orden",
+        error: err.message,
+      });
     }
   }
 }
