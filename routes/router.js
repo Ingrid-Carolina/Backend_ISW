@@ -17,6 +17,7 @@ import DetalleOrdenController from '../controllers/detalleOrdenController.js';
 import AliadosImageController from '../controllers/TestimoniosImageController.js';
 import TestimoniosImageController from '../controllers/TestimoniosImageController.js';
 import ContactoImageController from '../controllers/ContactoImageController.js';
+import CategoriaImageController from '../controllers/CategoriaImageController.js';
 
 const router = express.Router();
 
@@ -136,6 +137,11 @@ router.put('/contactoimages', requireAuth, requireRole('admin'), ContactoImageCo
 
 router.get('/obtenerusuarios', AuthController.obtenerusuarios);
 router.put('/usuario/:id', AuthController.setrol);router.get('/images', HomeImageController.getImages);
+
+//Categorias
+router.get('/images', CategoriasImagesController.getImages);
+router.post('/upload', CategoriasImagesController.uploadImage);
+router.put('/images', CategoriasImagesController.updateImage);
 
 
 export default router;
