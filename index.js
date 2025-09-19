@@ -11,7 +11,7 @@ import bodyParser from 'body-parser';
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://pilotosbaseball.netlify.app'],
+  origin: ['http://localhost:5173', 'https://pilotosbaseball.netlify.app', 'https://pilotosfah.com'],
   credentials: true,
 }));
 
