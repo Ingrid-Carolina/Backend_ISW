@@ -109,7 +109,7 @@ router.post('/donaciones/productos', requireAuth, requireRole('admin'), Producto
 router.put('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.updateProducto);
 router.delete('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
-
+router.get('/donaciones', ProductosDonacionController.getDonaciones);
 
 // ordenes
 router.get('/ordenes', OrdenController.getOrdenes);

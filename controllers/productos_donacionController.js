@@ -119,6 +119,20 @@ class ProductosDonacionController {
       return res.status(500).send({ error: `Error al agregar donación: ${e}` });
     }
   }
+
+  static async getDonaciones(req, res) {
+  try {
+    const donaciones = await sql`
+      SELECT id_donacion, nombre, telefono, correo, dia, horario, descripcion
+      FROM donaciones
+      ORDER BY id_donacion DESC
+    `;
+    res.status(200).json({ donaciones });
+  } catch (e) {
+    console.error("Error al obtener donaciones:", e);
+    res.status(500).json({ error: `Error al obtener donaciones: ${e}` });
+  }
+}
 }
 
 export default ProductosDonacionController;
