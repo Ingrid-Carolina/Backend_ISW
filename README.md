@@ -316,7 +316,7 @@ GET /ultimaorden → Obtener última orden
 
 ## Subida de Imágenes
 
-Supabase Storage para almacenamiento
+● Supabase Storage para almacenamiento
 
 ● Multer para procesamiento de archivos
 
@@ -361,3 +361,15 @@ Supabase Storage para almacenamiento
 ● CORS configurado para dominios específicos
 
 ● Cookies HttpOnly y Secure flags
+
+# Soporte y Contacto
+
+Email técnico: [pilotoshn@outlook.com]
+
+Teléfono: +504 9918-2456
+
+Sitio web: [https://pilotosbaseball.netlify.app]
+
+# Licencia
+
+Este proyecto es de uso interno para la Asociación de Béisbol Menor PILOTOS FAH. Todos los derechos reservados.
