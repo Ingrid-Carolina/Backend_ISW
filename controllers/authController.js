@@ -607,7 +607,324 @@ static async registrarenvivo(req, res) {
   }
 }
 
+
+
+
+
+
 //Nuestroequipo
+
+
+
+
+// NuestroEquipo - Textos Editables (Versión Corregida)
+static async obtenerTodosLosTextos(req, res) {
+    try {
+        console.log('📖 Solicitando todos los textos de NuestroEquipo...');
+        
+        // Usando SQL directo (postgre.js)
+        const textos = await sql`
+            SELECT clave, valor, descripcion, updated_at
+            FROM textos_nuestroequipo
+            WHERE seccion = 'NuestroEquipo'
+            ORDER BY clave ASC
+        `;
+
+        // Transformar a objeto clave-valor
+        const textosObject = {};
+        textos.forEach(texto => {
+            textosObject[texto.clave] = texto.valor;
+        });
+
+        console.log(`✅ ${textos.length} textos cargados exitosamente`);
+        
+        res.json({
+            success: true,
+            data: textosObject,
+            count: textos.length,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en obtenerTodosLosTextos:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al cargar los textos',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+static async obtenerTextoPorClave(req, res) {
+    try {
+        const { clave } = req.params;
+        
+        if (!clave) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'La clave del texto es requerida'
+            });
+        }
+
+        console.log(`🔍 Buscando texto con clave: ${clave}`);
+        
+        const texto = await sql`
+            SELECT clave, valor, descripcion, updated_at
+            FROM textos_nuestroequipo
+            WHERE clave = ${clave}
+        `;
+
+        if (texto.length === 0) {
+            return res.status(404).json({
+                success: false,
+                mensaje: `Texto con clave "${clave}" no encontrado`
+            });
+        }
+
+        console.log(`✅ Texto "${clave}" encontrado`);
+        
+        res.json({
+            success: true,
+            data: texto[0],
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en obtenerTextoPorClave:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error al buscar el texto',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+static async actualizarTexto(req, res) {    
+    try {
+        const { clave, valor } = req.body;
+
+        console.log('📝 Solicitud de actualización de texto:', { clave, valor });
+
+        // Validaciones
+        if (!clave || typeof clave !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'La clave del texto es requerida y debe ser una cadena de texto'
+            });
+        }
+
+        if (!valor && valor !== '') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor del texto es requerido'
+            });
+        }
+
+        if (typeof valor !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor debe ser una cadena de texto'
+            });
+        }
+
+        // Validar longitud máxima
+        if (valor.length > 1000) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El texto no puede exceder los 1000 caracteres'
+            });
+        }
+
+        // Claves permitidas
+        const clavesPermitidas = [
+            'titulo_principal',
+            'titulo_jugadores',
+            'titulo_junta_directiva',
+            'categoria_ejecutiva',
+            'categoria_administrativa',
+            'categoria_supervision',
+            'categoria_vocales',
+            'mensaje_vacio',
+            'instruccion_admin'
+        ];
+
+        if (!clavesPermitidas.includes(clave)) {
+            return res.status(400).json({
+                success: false,
+                mensaje: `Clave "${clave}" no permitida. Claves válidas: ${clavesPermitidas.join(', ')}`
+            });
+        }
+
+        // Verificar si existe y actualizar o insertar
+        const textoExistente = await sql`
+            SELECT clave FROM textos_nuestroequipo WHERE clave = ${clave}
+        `;
+
+        let resultado;
+        if (textoExistente.length > 0) {
+            // Actualizar
+            resultado = await sql`
+                UPDATE textos_nuestroequipo 
+                SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                WHERE clave = ${clave}
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`✏️ Texto "${clave}" actualizado`);
+        } else {
+            // Insertar nuevo
+            resultado = await sql`
+                INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                VALUES (${clave}, ${valor.trim()}, ${`Texto editable para ${clave}`}, 'NuestroEquipo')
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`🆕 Texto "${clave}" creado`);
+        }
+
+        res.json({
+            success: true,
+            mensaje: 'Texto guardado correctamente',
+            data: resultado[0],
+            action: textoExistente.length > 0 ? 'updated' : 'created',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarTexto:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al guardar el texto',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+static async actualizarMultiplesTextos(req, res) {
+    try {
+        const { textos } = req.body;
+
+        console.log('📝 Solicitud de actualización múltiple:', { cantidad: textos ? Object.keys(textos).length : 0 });
+
+        if (!textos || typeof textos !== 'object') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El formato de textos es inválido. Debe ser un objeto clave-valor.'
+            });
+        }
+
+        if (Object.keys(textos).length === 0) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'No se proporcionaron textos para actualizar'
+            });
+        }
+
+        const clavesPermitidas = [
+            'titulo_principal',
+            'titulo_jugadores',
+            'titulo_junta_directiva',
+            'categoria_ejecutiva',
+            'categoria_administrativa',
+            'categoria_supervision',
+            'categoria_vocales',
+            'mensaje_vacio',
+            'instruccion_admin'
+        ];
+
+        const resultados = {
+            actualizados: [],
+            creados: [],
+            errores: []
+        };
+
+        // Procesar cada texto individualmente
+        for (const [clave, valor] of Object.entries(textos)) {
+            try {
+                if (!clavesPermitidas.includes(clave)) {
+                    resultados.errores.push({
+                        clave,
+                        error: `Clave no permitida`
+                    });
+                    continue;
+                }
+
+                if (typeof valor !== 'string') {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El valor debe ser una cadena de texto'
+                    });
+                    continue;
+                }
+
+                if (valor.length > 1000) {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El texto no puede exceder los 1000 caracteres'
+                    });
+                    continue;
+                }
+
+                const textoExistente = await sql`
+                    SELECT clave FROM textos_nuestroequipo WHERE clave = ${clave}
+                `;
+
+                if (textoExistente.length > 0) {
+                    await sql`
+                        UPDATE textos_nuestroequipo 
+                        SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                        WHERE clave = ${clave}
+                    `;
+                    resultados.actualizados.push(clave);
+                } else {
+                    await sql`
+                        INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                        VALUES (${clave}, ${valor.trim()}, ${`Texto editable para ${clave}`}, 'NuestroEquipo')
+                    `;
+                    resultados.creados.push(clave);
+                }
+
+            } catch (error) {
+                resultados.errores.push({
+                    clave,
+                    error: error.message
+                });
+            }
+        }
+
+        console.log(`✅ Actualización múltiple completada: 
+            ${resultados.actualizados.length} actualizados, 
+            ${resultados.creados.length} creados, 
+            ${resultados.errores.length} errores`);
+
+        res.json({
+            success: resultados.errores.length === 0,
+            mensaje: resultados.errores.length === 0 ? 
+                'Todos los textos fueron procesados correctamente' : 
+                'Algunos textos tuvieron errores',
+            data: resultados,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarMultiplesTextos:', error);
+
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al procesar los textos',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+
+
+
+
+
+
 //Obtener todos los miembros de la junta directiva
 static async obtenerJuntaDirectiva(req, res) {
   try {

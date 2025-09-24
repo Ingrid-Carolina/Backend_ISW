@@ -73,6 +73,12 @@ router.post('/junta-directiva', requireAuth, requireRole('admin'), AuthControlle
 router.put('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.editarMiembro);
 router.delete('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.eliminarMiembro); 
 
+
+//Nuestro Equipo. editar texto
+router.get('/nuestroequipo/textos', AuthController.obtenerTodosLosTextos);
+router.get('/nuestroequipo/textos/:clave', AuthController.obtenerTextoPorClave);
+router.put('/nuestroequipo/textos', requireAuth, requireRole('admin'), AuthController.actualizarTexto);
+router.put('/nuestroequipo/textos/multiples', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextos);
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
 
