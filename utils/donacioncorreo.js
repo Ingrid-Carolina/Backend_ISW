@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from "dotenv";
 import { readFile } from "fs/promises";
 import path from "path";
@@ -9,15 +9,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function createTransporter() {
-  return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /** ---------- Correo interno (al buzón del club) ---------- */
 function adminHtml(d) {
@@ -48,16 +40,11 @@ Fecha: ${new Date().toLocaleString()}`;
 }
 
 async function renderDonorTemplate(data) {
-  // ruta del template HTML
-  const templatePath = path.join(
-    __dirname,
-    "../templates/correo-donacion.html"
-  );
+  const templatePath = path.join(__dirname, "../templates/correo-donacion.html");
   let html = await readFile(templatePath, "utf-8");
 
   const safe = (v, fallback = "-") => (v ?? "").toString().trim() || fallback;
 
-  // reemplazos
   html = html
     .replace(/{{nombre}}/g, safe(data.nombre, "amigo/a"))
     .replace(/{{dia}}/g, safe(data.dia))
@@ -78,18 +65,16 @@ Pronto te contactaremos para coordinar la entrega.`;
 }
 
 /**
- * Esta funcion envia dos correos:
- *  1) Al Interno osea al admin designado de recibir esos correos
- *  2) Agradecimiento al donante solo si proporciono un coreo
+ * Envía dos correos:
+ *  1) Al administrador (EMAIL_TO o EMAIL_USER)
+ *  2) Al donante (si proporcionó correo)
  */
 export default async function enviarCorreoDonacion(datos) {
-  const transporter = createTransporter();
-
-  const from = `"Pilotos FAH" <${process.env.EMAIL_USER}>`;
-  const adminTo = process.env.EMAIL_TO || process.env.EMAIL_USER;
+  const from = `"Pilotos FAH" <${process.env.EMAIL_FROM}>`;
+  const adminTo = process.env.EMAIL_TO || process.env.EMAIL_FROM;
 
   // 1) correo interno
-  await transporter.sendMail({
+  await resend.emails.send({
     from,
     to: adminTo,
     subject: `Nueva donación: ${datos.nombre || "Anónimo"}`,
@@ -101,7 +86,7 @@ export default async function enviarCorreoDonacion(datos) {
   if (datos.correo) {
     const htmlDonor = await renderDonorTemplate(datos);
 
-    await transporter.sendMail({
+    await resend.emails.send({
       from,
       to: datos.correo,
       subject: "Gracias por tu donación — Pilotos FAH",
