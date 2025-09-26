@@ -608,6 +608,275 @@ static async registrarenvivo(req, res) {
 }
 
 
+//tienda
+
+
+
+
+// Métodos corregidos para Tienda en authController.js
+
+// 1. Corregir obtenerTextosTienda
+static async obtenerTextosTienda(req, res) {
+    try {
+        console.log('📖 Solicitando todos los textos de Tienda...');
+        
+        const textos = await sql`
+            SELECT clave, valor, descripcion, updated_at
+            FROM textos_nuestroequipo
+            WHERE clave LIKE 'tienda_%'
+            ORDER BY clave ASC
+        `;
+
+        // Transformar a objeto clave-valor (mantener las claves completas)
+        const textosObject = {};
+        textos.forEach(texto => {
+            textosObject[texto.clave] = texto.valor;
+        });
+
+        console.log(`✅ ${textos.length} textos de tienda cargados exitosamente`);
+        
+        res.json({
+            success: true,
+            data: textosObject,
+            count: textos.length,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en obtenerTextosTienda:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al cargar los textos de tienda',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+// 2. Corregir actualizarTextoTienda con más claves permitidas
+
+static async actualizarTextoTienda(req, res) {    
+    try {
+        const { clave, valor } = req.body;
+
+        console.log('📝 Solicitud de actualización de texto de tienda:', { clave, valor });
+
+        if (!clave || typeof clave !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'La clave del texto es requerida y debe ser una cadena de texto'
+            });
+        }
+
+        if (!valor && valor !== '') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor del texto es requerido'
+            });
+        }
+
+        if (typeof valor !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor debe ser una cadena de texto'
+            });
+        }
+
+        if (valor.length > 1000) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El texto no puede exceder los 1000 caracteres'
+            });
+        }
+
+        // CAMBIAR: Usar claves únicas para Tienda
+        const clavesPermitidas = [
+            'tienda_titulo_principal',        // En lugar de 'titulo_principal'
+            'tienda_subtitulo',
+            'tienda_descripcion',
+            'tienda_mensaje_carrito_vacio',
+            'tienda_texto_footer',
+            'tienda_instruccion_compra',
+            'tienda_mensaje_bienvenida'
+        ];
+
+        if (!clavesPermitidas.includes(clave)) {
+            return res.status(400).json({
+                success: false,
+                mensaje: `Clave "${clave}" no permitida para tienda. Claves válidas: ${clavesPermitidas.join(', ')}`
+            });
+        }
+
+        // Verificar si existe (SIN filtro por sección ya que las claves son únicas)
+        const textoExistente = await sql`
+            SELECT clave FROM textos_nuestroequipo 
+            WHERE clave = ${clave}
+        `;
+
+        let resultado;
+        if (textoExistente.length > 0) {
+            // Actualizar
+            resultado = await sql`
+                UPDATE textos_nuestroequipo 
+                SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                WHERE clave = ${clave}
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`✏️ Texto de tienda "${clave}" actualizado`);
+        } else {
+            // Insertar nuevo
+            resultado = await sql`
+                INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                VALUES (${clave}, ${valor.trim()}, ${`Texto editable para tienda: ${clave}`}, 'Tienda')
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`🆕 Texto de tienda "${clave}" creado`);
+        }
+
+        res.json({
+            success: true,
+            mensaje: 'Texto de tienda guardado correctamente',
+            data: resultado[0],
+            action: textoExistente.length > 0 ? 'updated' : 'created',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarTextoTienda:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al guardar el texto de tienda',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+
+// 3. Corregir actualizarMultiplesTextosTienda
+static async actualizarMultiplesTextosTienda(req, res) {
+    try {
+        const { textos } = req.body;
+
+        console.log('📝 Solicitud de actualización múltiple de tienda:', { 
+            cantidad: textos ? Object.keys(textos).length : 0 
+        });
+
+        if (!textos || typeof textos !== 'object') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El formato de textos es inválido. Debe ser un objeto clave-valor.'
+            });
+        }
+
+        if (Object.keys(textos).length === 0) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'No se proporcionaron textos para actualizar'
+            });
+        }
+
+        // MISMAS claves permitidas que en el método individual
+        const clavesPermitidas = [
+            'titulo_principal',
+            'subtitulo_tienda',
+            'descripcion_tienda',
+            'mensaje_carrito_vacio',
+            'texto_footer_tienda',
+            'instruccion_compra',
+            'mensaje_bienvenida'
+        ];
+
+        const resultados = {
+            actualizados: [],
+            creados: [],
+            errores: []
+        };
+
+        // Procesar cada texto individualmente
+        for (const [clave, valor] of Object.entries(textos)) {
+            try {
+                if (!clavesPermitidas.includes(clave)) {
+                    resultados.errores.push({
+                        clave,
+                        error: `Clave no permitida para tienda`
+                    });
+                    continue;
+                }
+
+                if (typeof valor !== 'string') {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El valor debe ser una cadena de texto'
+                    });
+                    continue;
+                }
+
+                if (valor.length > 1000) {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El texto no puede exceder los 1000 caracteres'
+                    });
+                    continue;
+                }
+
+                const textoExistente = await sql`
+                    SELECT clave FROM textos_nuestroequipo 
+                    WHERE clave = ${clave} AND seccion = 'Tienda'
+                `;
+
+                if (textoExistente.length > 0) {
+                    await sql`
+                        UPDATE textos_nuestroequipo 
+                        SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                        WHERE clave = ${clave} AND seccion = 'Tienda'
+                    `;
+                    resultados.actualizados.push(clave);
+                } else {
+                    await sql`
+                        INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                        VALUES (${clave}, ${valor.trim()}, ${`Texto editable para tienda: ${clave}`}, 'Tienda')
+                    `;
+                    resultados.creados.push(clave);
+                }
+
+            } catch (error) {
+                resultados.errores.push({
+                    clave,
+                    error: error.message
+                });
+            }
+        }
+
+        console.log(`✅ Actualización múltiple de tienda completada: 
+            ${resultados.actualizados.length} actualizados, 
+            ${resultados.creados.length} creados, 
+            ${resultados.errores.length} errores`);
+
+        res.json({
+            success: resultados.errores.length === 0,
+            mensaje: resultados.errores.length === 0 ? 
+                'Todos los textos de tienda fueron procesados correctamente' : 
+                'Algunos textos de tienda tuvieron errores',
+            data: resultados,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarMultiplesTextosTienda:', error);
+
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al procesar los textos de tienda',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+
 
 
 
@@ -747,7 +1016,9 @@ static async actualizarTexto(req, res) {
             'categoria_supervision',
             'categoria_vocales',
             'mensaje_vacio',
-            'instruccion_admin'
+            'instruccion_admin',
+            'titulo_tienda'
+
         ];
 
         if (!clavesPermitidas.includes(clave)) {
@@ -830,7 +1101,9 @@ static async actualizarMultiplesTextos(req, res) {
             'categoria_supervision',
             'categoria_vocales',
             'mensaje_vacio',
-            'instruccion_admin'
+            'instruccion_admin',
+            'titulo_tienda'
+
         ];
 
         const resultados = {

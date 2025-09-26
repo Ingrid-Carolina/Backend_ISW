@@ -79,6 +79,14 @@ router.get('/nuestroequipo/textos', AuthController.obtenerTodosLosTextos);
 router.get('/nuestroequipo/textos/:clave', AuthController.obtenerTextoPorClave);
 router.put('/nuestroequipo/textos', requireAuth, requireRole('admin'), AuthController.actualizarTexto);
 router.put('/nuestroequipo/textos/multiples', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextos);
+
+//Tienda Editar texto
+// Tienda Editar texto - ESTAS RUTAS DEBEN EXISTIR
+router.get('/tienda/textos', AuthController.obtenerTextosTienda);
+router.get('/tienda/textos/:clave', AuthController.obtenerTextoPorClave);
+router.put('/tienda/textos', requireAuth, requireRole('admin'), AuthController.actualizarTextoTienda);
+router.put('/tienda/textos/multiple', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextosTienda);
+
 //jugadores
 router.get('/jugadores', JugadorController.getJugadores);
 
