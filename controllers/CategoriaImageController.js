@@ -71,6 +71,47 @@ class CategoriasImagesController {
       });
     });
   }
+
+  static async getCategorias(req, res) {
+    try {
+      const categorias = await sql`
+  SELECT id, slugs, titletext, image, tipo, descripcion
+  FROM categorias_images
+  ORDER BY slugs
+`;
+
+      res.status(200).json({ categorias });
+    } catch (err) {
+      console.error('Error al obtener categorías:', err);
+      res.status(500).json({ error: 'Error al obtener categorías de la base de datos.' });
+    }
+  }
+
+  static async updateCategoria(req, res) {
+    const { id } = req.params;
+    const { titletext, tipo, descripcion, image } = req.body; // image debe ser URL
+
+    try {
+      const [categoriaActualizada] = await sql`
+      UPDATE categorias_images
+      SET titletext = ${titletext},
+          tipo = ${tipo},
+          descripcion = ${descripcion},
+          image = ${image}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+      if (!categoriaActualizada) {
+        return res.status(404).json({ error: "Categoría no encontrada" });
+      }
+
+      res.status(200).json({ categoria: categoriaActualizada });
+    } catch (e) {
+      console.error(`Error al actualizar categoría: ${e}`);
+      res.status(500).json({ error: `Error al actualizar categoría: ${e}` });
+    }
+  }
 }
 
 export default CategoriasImagesController;

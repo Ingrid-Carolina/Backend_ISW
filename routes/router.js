@@ -165,6 +165,9 @@ router.get('/obteneruid', requireAuth, AuthController.obtenerUid);
 //obtener ultima orden
 router.get('/ultimaorden',OrdenController.getultimaorden);
 
+// Obtener todas las categorías
+router.get('/categorias', CategoriaImageController.getCategorias);
+router.put('/categorias/:id', CategoriaImageController.updateCategoria);
 
 
 export default router;
