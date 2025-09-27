@@ -4,14 +4,15 @@ export default class contactoController {
   static async obtener(req, res) {
     try {
       const rows = await sql`
-        SELECT id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val, texto_intro, texto_cta, updated_at
+        SELECT id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val,
+               texto_intro, texto_cta, header_title, updated_at
         FROM contacto_site
         ORDER BY id ASC
         LIMIT 1
       `;
 
       if (!rows.length) {
-        // Si no hay registros o falla al obtenerlos usa defaults
+        // Defaults si no hay registro
         return res.status(200).json({
           id: 1,
           org_nombre: "Organización de Béisbol PILOTOS - FAH",
@@ -21,11 +22,16 @@ export default class contactoController {
           email_val: "pilotoshn@outlook.com",
           texto_intro: "Comparta su experiencia con nosotros.",
           texto_cta: "Envíe una historia o testimonio.",
+          header_title: "Ponte en Contacto",
           updated_at: null,
         });
       }
 
-      return res.status(200).json(rows[0]);
+      const row = rows[0];
+      return res.status(200).json({
+        ...row,
+        header_title: row.header_title ?? "Ponte en Contacto",
+      });
     } catch (e) {
       console.error("obtener contacto error:", e);
       return res.status(500).json({ mensaje: "Error al obtener contacto" });
@@ -42,9 +48,10 @@ export default class contactoController {
         email_val,
         texto_intro,
         texto_cta,
+        header_title, 
       } = req.body;
 
-      // Valida campos minimos
+      // Valida mínimos
       if (
         !org_nombre ||
         !telefono_lbl ||
@@ -57,13 +64,15 @@ export default class contactoController {
         return res.status(400).json({ mensaje: "Faltan campos requeridos" });
       }
 
-      //validaciones
+      // Upsert con header_title
       const rows = await sql`
         INSERT INTO contacto_site
-          (id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val, texto_intro, texto_cta, updated_at)
+          (id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val,
+           texto_intro, texto_cta, header_title, updated_at)
         OVERRIDING SYSTEM VALUE
         VALUES
-          (1, ${org_nombre}, ${telefono_lbl}, ${telefono_val}, ${email_lbl}, ${email_val}, ${texto_intro}, ${texto_cta}, NOW())
+          (1, ${org_nombre}, ${telefono_lbl}, ${telefono_val}, ${email_lbl}, ${email_val},
+           ${texto_intro}, ${texto_cta}, ${header_title ?? "Ponte en Contacto"}, NOW())
         ON CONFLICT (id) DO UPDATE SET
           org_nombre   = EXCLUDED.org_nombre,
           telefono_lbl = EXCLUDED.telefono_lbl,
@@ -72,12 +81,14 @@ export default class contactoController {
           email_val    = EXCLUDED.email_val,
           texto_intro  = EXCLUDED.texto_intro,
           texto_cta    = EXCLUDED.texto_cta,
+          header_title = EXCLUDED.header_title,
           updated_at   = NOW()
-        RETURNING id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val, texto_intro, texto_cta, updated_at
+        RETURNING id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val,
+                  texto_intro, texto_cta, header_title, updated_at
       `;
 
       return res.status(200).json({
-        mensaje: "Informacion de contacto actualizada correctamente",
+        mensaje: "Información de contacto actualizada correctamente",
         contacto: rows[0],
       });
     } catch (e) {
