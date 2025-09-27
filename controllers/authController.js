@@ -429,7 +429,10 @@ class AuthController {
       console.error("Error al obtener eventos:", error);
       res
         .status(500)
-        .send({ mensaje: "Error al obtener testimonios", error: error.message });
+        .send({
+          mensaje: "Error al obtener testimonios",
+          error: error.message,
+        });
     }
   }
 
@@ -478,730 +481,737 @@ class AuthController {
     }
   }
 
-static async registrarenvivo(req, res) {
-    const { video_url, channel_url, descripcion, activo} = req.body; //destructuramos las propiedades especificas de mi req.body
+  static async registrarenvivo(req, res) {
+  const { video_url, channel_url, descripcion = '', activo, mostrar_anuncio } = req.body;
 
-    try {
-      if (!video_url || !channel_url) {
+  try {
+    if (!video_url || !channel_url) {
       return res.status(400).send({
         mensaje: "Los campos video_url y channel_url son requeridos"
       });
     }
 
-      const result = await sql`SELECT validar_url( ${video_url} )`;
+    // Valida URL (si tu función lanza error, lo captura el catch)
+    await sql`SELECT validar_url(${video_url})`;
 
-     
-        // Extrae el boolean del arreglo del resultad;
+    // Si 'activo' / 'mostrar_anuncio' vienen undefined, se aplican defaults
+    const urldata = {
+      video_url,
+      channel_url,
+      descripcion,
+      activo: !!activo,              
+      mostrar_anuncio: !!mostrar_anuncio 
+    };
 
-        const urldata = {
-          video_url: video_url,
-          channel_url: channel_url,
-          descripcion: descripcion,
-          activo: activo // Activar a true si esta un video live o false si no lo es
+    const inserted = await sql`INSERT INTO envivo ${sql(urldata)} RETURNING id_envivo`;
+    return res.status(201).send({
+      mensaje: "Su video en vivo fue creado correctamente",
+      id_envivo: inserted[0]?.id_envivo
+    });
 
-        };
-
-        await sql`INSERT INTO envivo ${sql(urldata)} `;
-
-        res.status(203).send({
-          mensaje: "Su video en vivo fue creado correctamente",
-        });
-    } catch (err) {
-      res
-        .status(500)
-        .send({ mensaje: "Error al crear el video en vivo: " + err.message });
-    }
+  } catch (err) {
+    return res.status(500).send({ mensaje: "Error al crear el video en vivo: " + err.message });
   }
-
+}
 
 
   static async obtenerenvivo(req, res) {
-   
-    try {
-       const videos = await sql`
-      SELECT id_envivo, video_url, channel_url, descripcion, activo 
-      FROM envivo 
+  try {
+    const videos = await sql`
+      SELECT
+        id_envivo,
+        video_url,
+        channel_url,
+        descripcion,
+        activo,
+        mostrar_anuncio        
+      FROM envivo
       ORDER BY id_envivo DESC
       LIMIT 1
     `;
 
-        console.log('Videos cargados!', videos.length)
-        res.status(203).json({ videos}); //envia el arreglo de los videos cargados en un json
-      
-    } catch (err) {
-      res.status(500).send({ mensaje: "Error al cargar los videos: " + err.message });
-    }
+    // 200 OK para GET
+    return res.status(200).json({ videos });
+
+  } catch (err) {
+    return res.status(500).send({ mensaje: "Error al cargar los videos: " + err.message });
   }
+}
 
 
-  static async actualizarenvivo(req,res){
-
-    const{ id_envivo}= req.params;
-     const { video_url, channel_url, descripcion} = req.body;
+  static async actualizarenvivo(req, res) {
+    const { id_envivo } = req.params;
+    const { video_url, channel_url, descripcion } = req.body;
     try {
-
       if (!video_url || !channel_url) {
-      return res.status(400).send({
-        mensaje: "Los campos video_url y channel_url son requeridos"
-      });
-    }
+        return res.status(400).send({
+          mensaje: "Los campos video_url y channel_url son requeridos",
+        });
+      }
 
       const result = await sql`
       UPDATE envivo
       SET video_url = ${video_url},
         channel_url = ${channel_url},
-        descripcion = ${descripcion},
+        descripcion = ${descripcion}
       WHERE id_envivo = ${id_envivo}
       RETURNING id_envivo, video_url, channel_url, descripcion, activo
     `;
 
-    if (result.length === 0) {
-      return res.status(404).send({
-        mensaje: "Video no encontrado"
-      });
-    }
+      if (result.length === 0) {
+        return res.status(404).send({
+          mensaje: "Video no encontrado",
+        });
+      }
 
-
-    res.status(203).send({ mensaje: "Video actualizado exitosamente!"})
-      
+      res.status(203).send({ mensaje: "Video actualizado exitosamente!" });
     } catch (error) {
-
-        res.status(500).send({ mensaje: "Error al actualizar el video: "+" "+error.message})
-      
+      res
+        .status(500)
+        .send({
+          mensaje: "Error al actualizar el video: " + " " + error.message,
+        });
     }
-
-
   }
 
   static async toggleActivoEnvivo(req, res) {
-  const { id_envivo } = req.params;
-  
-  try {
-    // Primero desactivar todos los videos
-    await sql`UPDATE envivo SET activo = 'N'`;
-    
-    // Luego activar solo el seleccionado
-    const result = await sql`
+    const { id_envivo } = req.params;
+
+    try {
+      // Primero desactivar todos los videos
+      await sql`UPDATE envivo SET activo = 'N'`;
+
+      // Luego activar solo el seleccionado
+      const result = await sql`
       UPDATE envivo
       SET activo = 'S'
       WHERE id_envivo = ${id_envivo}
       RETURNING id_envivo, video_url, channel_url, descripcion, activo
     `;
 
-    if (result.length === 0) {
-      return res.status(404).send({
-        mensaje: "Video no encontrado"
+      if (result.length === 0) {
+        return res.status(404).send({
+          mensaje: "Video no encontrado",
+        });
+      }
+
+      res.status(200).send({
+        mensaje: "Video activado correctamente",
+        video: result[0],
+      });
+    } catch (error) {
+      console.error("Error en toggleActivoEnvivo:", error);
+      res.status(500).send({
+        mensaje: "Error al activar el video: " + error.message,
       });
     }
+  }
 
-    res.status(200).send({
-      mensaje: "Video activado correctamente",
-      video: result[0]
-    });
-    
-  } catch (error) {
-    console.error('Error en toggleActivoEnvivo:', error);
-    res.status(500).send({
-      mensaje: "Error al activar el video: " + error.message
-    });
+  static async setMostrarAnuncio(req, res) {
+  try {
+    const raw = req.body?.valor;
+    const valor = (raw === true || raw === 'true' || raw === 1 || raw === '1');
+
+    const r = await sql`
+      UPDATE envivo
+      SET mostrar_anuncio = ${valor}
+      WHERE id_envivo = (SELECT id_envivo FROM envivo ORDER BY id_envivo DESC LIMIT 1)
+      RETURNING id_envivo, mostrar_anuncio
+    `;
+
+    if (r.length === 0) {
+      return res.status(404).send({ mensaje: "No hay videos" });
+    }
+    return res.status(200).send({ mensaje: "OK", mostrar_anuncio: r[0].mostrar_anuncio });
+  } catch (e) {
+    return res.status(500).send({ mensaje: "Error: " + e.message });
   }
 }
 
 
-//tienda
+  //tienda
 
+  // Métodos corregidos para Tienda en authController.js
 
-
-
-// Métodos corregidos para Tienda en authController.js
-
-// 1. Corregir obtenerTextosTienda
-static async obtenerTextosTienda(req, res) {
+  // 1. Corregir obtenerTextosTienda
+  static async obtenerTextosTienda(req, res) {
     try {
-        console.log('📖 Solicitando todos los textos de Tienda...');
-        
-        const textos = await sql`
+      console.log("📖 Solicitando todos los textos de Tienda...");
+
+      const textos = await sql`
             SELECT clave, valor, descripcion, updated_at
             FROM textos_nuestroequipo
             WHERE clave LIKE 'tienda_%'
             ORDER BY clave ASC
         `;
 
-        // Transformar a objeto clave-valor (mantener las claves completas)
-        const textosObject = {};
-        textos.forEach(texto => {
-            textosObject[texto.clave] = texto.valor;
-        });
+      // Transformar a objeto clave-valor (mantener las claves completas)
+      const textosObject = {};
+      textos.forEach((texto) => {
+        textosObject[texto.clave] = texto.valor;
+      });
 
-        console.log(`✅ ${textos.length} textos de tienda cargados exitosamente`);
-        
-        res.json({
-            success: true,
-            data: textosObject,
-            count: textos.length,
-            timestamp: new Date().toISOString()
-        });
+      console.log(`✅ ${textos.length} textos de tienda cargados exitosamente`);
 
+      res.json({
+        success: true,
+        data: textosObject,
+        count: textos.length,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en obtenerTextosTienda:', error);
-        
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error interno del servidor al cargar los textos de tienda',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      console.error("❌ Error en obtenerTextosTienda:", error);
+
+      res.status(500).json({
+        success: false,
+        mensaje: "Error interno del servidor al cargar los textos de tienda",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
+  // 2. Corregir actualizarTextoTienda con más claves permitidas
 
-// 2. Corregir actualizarTextoTienda con más claves permitidas
-
-static async actualizarTextoTienda(req, res) {    
+  static async actualizarTextoTienda(req, res) {
     try {
-        const { clave, valor } = req.body;
+      const { clave, valor } = req.body;
 
-        console.log('📝 Solicitud de actualización de texto de tienda:', { clave, valor });
+      console.log("📝 Solicitud de actualización de texto de tienda:", {
+        clave,
+        valor,
+      });
 
-        if (!clave || typeof clave !== 'string') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'La clave del texto es requerida y debe ser una cadena de texto'
-            });
-        }
+      if (!clave || typeof clave !== "string") {
+        return res.status(400).json({
+          success: false,
+          mensaje:
+            "La clave del texto es requerida y debe ser una cadena de texto",
+        });
+      }
 
-        if (!valor && valor !== '') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El valor del texto es requerido'
-            });
-        }
+      if (!valor && valor !== "") {
+        return res.status(400).json({
+          success: false,
+          mensaje: "El valor del texto es requerido",
+        });
+      }
 
-        if (typeof valor !== 'string') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El valor debe ser una cadena de texto'
-            });
-        }
+      if (typeof valor !== "string") {
+        return res.status(400).json({
+          success: false,
+          mensaje: "El valor debe ser una cadena de texto",
+        });
+      }
 
-        if (valor.length > 1000) {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El texto no puede exceder los 1000 caracteres'
-            });
-        }
+      if (valor.length > 1000) {
+        return res.status(400).json({
+          success: false,
+          mensaje: "El texto no puede exceder los 1000 caracteres",
+        });
+      }
 
-        // CAMBIAR: Usar claves únicas para Tienda
-        const clavesPermitidas = [
-            'tienda_titulo_principal',        // En lugar de 'titulo_principal'
-            'tienda_subtitulo',
-            'tienda_descripcion',
-            'tienda_mensaje_carrito_vacio',
-            'tienda_texto_footer',
-            'tienda_instruccion_compra',
-            'tienda_mensaje_bienvenida'
-        ];
+      // CAMBIAR: Usar claves únicas para Tienda
+      const clavesPermitidas = [
+        "tienda_titulo_principal", // En lugar de 'titulo_principal'
+        "tienda_subtitulo",
+        "tienda_descripcion",
+        "tienda_mensaje_carrito_vacio",
+        "tienda_texto_footer",
+        "tienda_instruccion_compra",
+        "tienda_mensaje_bienvenida",
+      ];
 
-        if (!clavesPermitidas.includes(clave)) {
-            return res.status(400).json({
-                success: false,
-                mensaje: `Clave "${clave}" no permitida para tienda. Claves válidas: ${clavesPermitidas.join(', ')}`
-            });
-        }
+      if (!clavesPermitidas.includes(clave)) {
+        return res.status(400).json({
+          success: false,
+          mensaje: `Clave "${clave}" no permitida para tienda. Claves válidas: ${clavesPermitidas.join(
+            ", "
+          )}`,
+        });
+      }
 
-        // Verificar si existe (SIN filtro por sección ya que las claves son únicas)
-        const textoExistente = await sql`
+      // Verificar si existe (SIN filtro por sección ya que las claves son únicas)
+      const textoExistente = await sql`
             SELECT clave FROM textos_nuestroequipo 
             WHERE clave = ${clave}
         `;
 
-        let resultado;
-        if (textoExistente.length > 0) {
-            // Actualizar
-            resultado = await sql`
+      let resultado;
+      if (textoExistente.length > 0) {
+        // Actualizar
+        resultado = await sql`
                 UPDATE textos_nuestroequipo 
                 SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
                 WHERE clave = ${clave}
                 RETURNING clave, valor, descripcion, updated_at
             `;
-            console.log(`✏️ Texto de tienda "${clave}" actualizado`);
-        } else {
-            // Insertar nuevo
-            resultado = await sql`
+        console.log(`✏️ Texto de tienda "${clave}" actualizado`);
+      } else {
+        // Insertar nuevo
+        resultado = await sql`
                 INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
                 VALUES (${clave}, ${valor.trim()}, ${`Texto editable para tienda: ${clave}`}, 'Tienda')
                 RETURNING clave, valor, descripcion, updated_at
             `;
-            console.log(`🆕 Texto de tienda "${clave}" creado`);
-        }
+        console.log(`🆕 Texto de tienda "${clave}" creado`);
+      }
 
-        res.json({
-            success: true,
-            mensaje: 'Texto de tienda guardado correctamente',
-            data: resultado[0],
-            action: textoExistente.length > 0 ? 'updated' : 'created',
-            timestamp: new Date().toISOString()
-        });
-
+      res.json({
+        success: true,
+        mensaje: "Texto de tienda guardado correctamente",
+        data: resultado[0],
+        action: textoExistente.length > 0 ? "updated" : "created",
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en actualizarTextoTienda:', error);
-        
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error interno del servidor al guardar el texto de tienda',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      console.error("❌ Error en actualizarTextoTienda:", error);
+
+      res.status(500).json({
+        success: false,
+        mensaje: "Error interno del servidor al guardar el texto de tienda",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
-
-
-// 3. Corregir actualizarMultiplesTextosTienda
-static async actualizarMultiplesTextosTienda(req, res) {
+  // 3. Corregir actualizarMultiplesTextosTienda
+  static async actualizarMultiplesTextosTienda(req, res) {
     try {
-        const { textos } = req.body;
+      const { textos } = req.body;
 
-        console.log('📝 Solicitud de actualización múltiple de tienda:', { 
-            cantidad: textos ? Object.keys(textos).length : 0 
+      console.log("📝 Solicitud de actualización múltiple de tienda:", {
+        cantidad: textos ? Object.keys(textos).length : 0,
+      });
+
+      if (!textos || typeof textos !== "object") {
+        return res.status(400).json({
+          success: false,
+          mensaje:
+            "El formato de textos es inválido. Debe ser un objeto clave-valor.",
         });
+      }
 
-        if (!textos || typeof textos !== 'object') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El formato de textos es inválido. Debe ser un objeto clave-valor.'
+      if (Object.keys(textos).length === 0) {
+        return res.status(400).json({
+          success: false,
+          mensaje: "No se proporcionaron textos para actualizar",
+        });
+      }
+
+      // MISMAS claves permitidas que en el método individual
+      const clavesPermitidas = [
+        "titulo_principal",
+        "subtitulo_tienda",
+        "descripcion_tienda",
+        "mensaje_carrito_vacio",
+        "texto_footer_tienda",
+        "instruccion_compra",
+        "mensaje_bienvenida",
+      ];
+
+      const resultados = {
+        actualizados: [],
+        creados: [],
+        errores: [],
+      };
+
+      // Procesar cada texto individualmente
+      for (const [clave, valor] of Object.entries(textos)) {
+        try {
+          if (!clavesPermitidas.includes(clave)) {
+            resultados.errores.push({
+              clave,
+              error: `Clave no permitida para tienda`,
             });
-        }
+            continue;
+          }
 
-        if (Object.keys(textos).length === 0) {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'No se proporcionaron textos para actualizar'
+          if (typeof valor !== "string") {
+            resultados.errores.push({
+              clave,
+              error: "El valor debe ser una cadena de texto",
             });
-        }
+            continue;
+          }
 
-        // MISMAS claves permitidas que en el método individual
-        const clavesPermitidas = [
-            'titulo_principal',
-            'subtitulo_tienda',
-            'descripcion_tienda',
-            'mensaje_carrito_vacio',
-            'texto_footer_tienda',
-            'instruccion_compra',
-            'mensaje_bienvenida'
-        ];
+          if (valor.length > 1000) {
+            resultados.errores.push({
+              clave,
+              error: "El texto no puede exceder los 1000 caracteres",
+            });
+            continue;
+          }
 
-        const resultados = {
-            actualizados: [],
-            creados: [],
-            errores: []
-        };
-
-        // Procesar cada texto individualmente
-        for (const [clave, valor] of Object.entries(textos)) {
-            try {
-                if (!clavesPermitidas.includes(clave)) {
-                    resultados.errores.push({
-                        clave,
-                        error: `Clave no permitida para tienda`
-                    });
-                    continue;
-                }
-
-                if (typeof valor !== 'string') {
-                    resultados.errores.push({
-                        clave,
-                        error: 'El valor debe ser una cadena de texto'
-                    });
-                    continue;
-                }
-
-                if (valor.length > 1000) {
-                    resultados.errores.push({
-                        clave,
-                        error: 'El texto no puede exceder los 1000 caracteres'
-                    });
-                    continue;
-                }
-
-                const textoExistente = await sql`
+          const textoExistente = await sql`
                     SELECT clave FROM textos_nuestroequipo 
                     WHERE clave = ${clave} AND seccion = 'Tienda'
                 `;
 
-                if (textoExistente.length > 0) {
-                    await sql`
+          if (textoExistente.length > 0) {
+            await sql`
                         UPDATE textos_nuestroequipo 
                         SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
                         WHERE clave = ${clave} AND seccion = 'Tienda'
                     `;
-                    resultados.actualizados.push(clave);
-                } else {
-                    await sql`
+            resultados.actualizados.push(clave);
+          } else {
+            await sql`
                         INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
                         VALUES (${clave}, ${valor.trim()}, ${`Texto editable para tienda: ${clave}`}, 'Tienda')
                     `;
-                    resultados.creados.push(clave);
-                }
-
-            } catch (error) {
-                resultados.errores.push({
-                    clave,
-                    error: error.message
-                });
-            }
+            resultados.creados.push(clave);
+          }
+        } catch (error) {
+          resultados.errores.push({
+            clave,
+            error: error.message,
+          });
         }
+      }
 
-        console.log(`✅ Actualización múltiple de tienda completada: 
+      console.log(`✅ Actualización múltiple de tienda completada: 
             ${resultados.actualizados.length} actualizados, 
             ${resultados.creados.length} creados, 
             ${resultados.errores.length} errores`);
 
-        res.json({
-            success: resultados.errores.length === 0,
-            mensaje: resultados.errores.length === 0 ? 
-                'Todos los textos de tienda fueron procesados correctamente' : 
-                'Algunos textos de tienda tuvieron errores',
-            data: resultados,
-            timestamp: new Date().toISOString()
-        });
-
+      res.json({
+        success: resultados.errores.length === 0,
+        mensaje:
+          resultados.errores.length === 0
+            ? "Todos los textos de tienda fueron procesados correctamente"
+            : "Algunos textos de tienda tuvieron errores",
+        data: resultados,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en actualizarMultiplesTextosTienda:', error);
+      console.error("❌ Error en actualizarMultiplesTextosTienda:", error);
 
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error interno del servidor al procesar los textos de tienda',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      res.status(500).json({
+        success: false,
+        mensaje: "Error interno del servidor al procesar los textos de tienda",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
+  //Nuestroequipo
 
-
-
-
-
-
-//Nuestroequipo
-
-
-
-
-// NuestroEquipo - Textos Editables (Versión Corregida)
-static async obtenerTodosLosTextos(req, res) {
+  // NuestroEquipo - Textos Editables (Versión Corregida)
+  static async obtenerTodosLosTextos(req, res) {
     try {
-        console.log('📖 Solicitando todos los textos de NuestroEquipo...');
-        
-        // Usando SQL directo (postgre.js)
-        const textos = await sql`
+      console.log("📖 Solicitando todos los textos de NuestroEquipo...");
+
+      // Usando SQL directo (postgre.js)
+      const textos = await sql`
             SELECT clave, valor, descripcion, updated_at
             FROM textos_nuestroequipo
             WHERE seccion = 'NuestroEquipo'
             ORDER BY clave ASC
         `;
 
-        // Transformar a objeto clave-valor
-        const textosObject = {};
-        textos.forEach(texto => {
-            textosObject[texto.clave] = texto.valor;
-        });
+      // Transformar a objeto clave-valor
+      const textosObject = {};
+      textos.forEach((texto) => {
+        textosObject[texto.clave] = texto.valor;
+      });
 
-        console.log(`✅ ${textos.length} textos cargados exitosamente`);
-        
-        res.json({
-            success: true,
-            data: textosObject,
-            count: textos.length,
-            timestamp: new Date().toISOString()
-        });
+      console.log(`✅ ${textos.length} textos cargados exitosamente`);
 
+      res.json({
+        success: true,
+        data: textosObject,
+        count: textos.length,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en obtenerTodosLosTextos:', error);
-        
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error interno del servidor al cargar los textos',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      console.error("❌ Error en obtenerTodosLosTextos:", error);
+
+      res.status(500).json({
+        success: false,
+        mensaje: "Error interno del servidor al cargar los textos",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
-static async obtenerTextoPorClave(req, res) {
+  static async obtenerTextoPorClave(req, res) {
     try {
-        const { clave } = req.params;
-        
-        if (!clave) {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'La clave del texto es requerida'
-            });
-        }
+      const { clave } = req.params;
 
-        console.log(`🔍 Buscando texto con clave: ${clave}`);
-        
-        const texto = await sql`
+      if (!clave) {
+        return res.status(400).json({
+          success: false,
+          mensaje: "La clave del texto es requerida",
+        });
+      }
+
+      console.log(`🔍 Buscando texto con clave: ${clave}`);
+
+      const texto = await sql`
             SELECT clave, valor, descripcion, updated_at
             FROM textos_nuestroequipo
             WHERE clave = ${clave}
         `;
 
-        if (texto.length === 0) {
-            return res.status(404).json({
-                success: false,
-                mensaje: `Texto con clave "${clave}" no encontrado`
-            });
-        }
-
-        console.log(`✅ Texto "${clave}" encontrado`);
-        
-        res.json({
-            success: true,
-            data: texto[0],
-            timestamp: new Date().toISOString()
+      if (texto.length === 0) {
+        return res.status(404).json({
+          success: false,
+          mensaje: `Texto con clave "${clave}" no encontrado`,
         });
+      }
 
+      console.log(`✅ Texto "${clave}" encontrado`);
+
+      res.json({
+        success: true,
+        data: texto[0],
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en obtenerTextoPorClave:', error);
-        
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error al buscar el texto',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      console.error("❌ Error en obtenerTextoPorClave:", error);
+
+      res.status(500).json({
+        success: false,
+        mensaje: "Error al buscar el texto",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
-static async actualizarTexto(req, res) {    
+  static async actualizarTexto(req, res) {
     try {
-        const { clave, valor } = req.body;
+      const { clave, valor } = req.body;
 
-        console.log('📝 Solicitud de actualización de texto:', { clave, valor });
+      console.log("📝 Solicitud de actualización de texto:", { clave, valor });
 
-        // Validaciones
-        if (!clave || typeof clave !== 'string') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'La clave del texto es requerida y debe ser una cadena de texto'
-            });
-        }
+      // Validaciones
+      if (!clave || typeof clave !== "string") {
+        return res.status(400).json({
+          success: false,
+          mensaje:
+            "La clave del texto es requerida y debe ser una cadena de texto",
+        });
+      }
 
-        if (!valor && valor !== '') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El valor del texto es requerido'
-            });
-        }
+      if (!valor && valor !== "") {
+        return res.status(400).json({
+          success: false,
+          mensaje: "El valor del texto es requerido",
+        });
+      }
 
-        if (typeof valor !== 'string') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El valor debe ser una cadena de texto'
-            });
-        }
+      if (typeof valor !== "string") {
+        return res.status(400).json({
+          success: false,
+          mensaje: "El valor debe ser una cadena de texto",
+        });
+      }
 
-        // Validar longitud máxima
-        if (valor.length > 1000) {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El texto no puede exceder los 1000 caracteres'
-            });
-        }
+      // Validar longitud máxima
+      if (valor.length > 1000) {
+        return res.status(400).json({
+          success: false,
+          mensaje: "El texto no puede exceder los 1000 caracteres",
+        });
+      }
 
-        // Claves permitidas
-        const clavesPermitidas = [
-            'titulo_principal',
-            'titulo_jugadores',
-            'titulo_junta_directiva',
-            'categoria_ejecutiva',
-            'categoria_administrativa',
-            'categoria_supervision',
-            'categoria_vocales',
-            'mensaje_vacio',
-            'instruccion_admin',
-            'titulo_tienda'
+      // Claves permitidas
+      const clavesPermitidas = [
+        "titulo_principal",
+        "titulo_jugadores",
+        "titulo_junta_directiva",
+        "categoria_ejecutiva",
+        "categoria_administrativa",
+        "categoria_supervision",
+        "categoria_vocales",
+        "mensaje_vacio",
+        "instruccion_admin",
+        "titulo_tienda",
+      ];
 
-        ];
+      if (!clavesPermitidas.includes(clave)) {
+        return res.status(400).json({
+          success: false,
+          mensaje: `Clave "${clave}" no permitida. Claves válidas: ${clavesPermitidas.join(
+            ", "
+          )}`,
+        });
+      }
 
-        if (!clavesPermitidas.includes(clave)) {
-            return res.status(400).json({
-                success: false,
-                mensaje: `Clave "${clave}" no permitida. Claves válidas: ${clavesPermitidas.join(', ')}`
-            });
-        }
-
-        // Verificar si existe y actualizar o insertar
-        const textoExistente = await sql`
+      // Verificar si existe y actualizar o insertar
+      const textoExistente = await sql`
             SELECT clave FROM textos_nuestroequipo WHERE clave = ${clave}
         `;
 
-        let resultado;
-        if (textoExistente.length > 0) {
-            // Actualizar
-            resultado = await sql`
+      let resultado;
+      if (textoExistente.length > 0) {
+        // Actualizar
+        resultado = await sql`
                 UPDATE textos_nuestroequipo 
                 SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
                 WHERE clave = ${clave}
                 RETURNING clave, valor, descripcion, updated_at
             `;
-            console.log(`✏️ Texto "${clave}" actualizado`);
-        } else {
-            // Insertar nuevo
-            resultado = await sql`
+        console.log(`✏️ Texto "${clave}" actualizado`);
+      } else {
+        // Insertar nuevo
+        resultado = await sql`
                 INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
                 VALUES (${clave}, ${valor.trim()}, ${`Texto editable para ${clave}`}, 'NuestroEquipo')
                 RETURNING clave, valor, descripcion, updated_at
             `;
-            console.log(`🆕 Texto "${clave}" creado`);
-        }
+        console.log(`🆕 Texto "${clave}" creado`);
+      }
 
-        res.json({
-            success: true,
-            mensaje: 'Texto guardado correctamente',
-            data: resultado[0],
-            action: textoExistente.length > 0 ? 'updated' : 'created',
-            timestamp: new Date().toISOString()
-        });
-
+      res.json({
+        success: true,
+        mensaje: "Texto guardado correctamente",
+        data: resultado[0],
+        action: textoExistente.length > 0 ? "updated" : "created",
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en actualizarTexto:', error);
-        
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error interno del servidor al guardar el texto',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      console.error("❌ Error en actualizarTexto:", error);
+
+      res.status(500).json({
+        success: false,
+        mensaje: "Error interno del servidor al guardar el texto",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
-static async actualizarMultiplesTextos(req, res) {
+  static async actualizarMultiplesTextos(req, res) {
     try {
-        const { textos } = req.body;
+      const { textos } = req.body;
 
-        console.log('📝 Solicitud de actualización múltiple:', { cantidad: textos ? Object.keys(textos).length : 0 });
+      console.log("📝 Solicitud de actualización múltiple:", {
+        cantidad: textos ? Object.keys(textos).length : 0,
+      });
 
-        if (!textos || typeof textos !== 'object') {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'El formato de textos es inválido. Debe ser un objeto clave-valor.'
+      if (!textos || typeof textos !== "object") {
+        return res.status(400).json({
+          success: false,
+          mensaje:
+            "El formato de textos es inválido. Debe ser un objeto clave-valor.",
+        });
+      }
+
+      if (Object.keys(textos).length === 0) {
+        return res.status(400).json({
+          success: false,
+          mensaje: "No se proporcionaron textos para actualizar",
+        });
+      }
+
+      const clavesPermitidas = [
+        "titulo_principal",
+        "titulo_jugadores",
+        "titulo_junta_directiva",
+        "categoria_ejecutiva",
+        "categoria_administrativa",
+        "categoria_supervision",
+        "categoria_vocales",
+        "mensaje_vacio",
+        "instruccion_admin",
+        "titulo_tienda",
+      ];
+
+      const resultados = {
+        actualizados: [],
+        creados: [],
+        errores: [],
+      };
+
+      // Procesar cada texto individualmente
+      for (const [clave, valor] of Object.entries(textos)) {
+        try {
+          if (!clavesPermitidas.includes(clave)) {
+            resultados.errores.push({
+              clave,
+              error: `Clave no permitida`,
             });
-        }
+            continue;
+          }
 
-        if (Object.keys(textos).length === 0) {
-            return res.status(400).json({
-                success: false,
-                mensaje: 'No se proporcionaron textos para actualizar'
+          if (typeof valor !== "string") {
+            resultados.errores.push({
+              clave,
+              error: "El valor debe ser una cadena de texto",
             });
-        }
+            continue;
+          }
 
-        const clavesPermitidas = [
-            'titulo_principal',
-            'titulo_jugadores',
-            'titulo_junta_directiva',
-            'categoria_ejecutiva',
-            'categoria_administrativa',
-            'categoria_supervision',
-            'categoria_vocales',
-            'mensaje_vacio',
-            'instruccion_admin',
-            'titulo_tienda'
+          if (valor.length > 1000) {
+            resultados.errores.push({
+              clave,
+              error: "El texto no puede exceder los 1000 caracteres",
+            });
+            continue;
+          }
 
-        ];
-
-        const resultados = {
-            actualizados: [],
-            creados: [],
-            errores: []
-        };
-
-        // Procesar cada texto individualmente
-        for (const [clave, valor] of Object.entries(textos)) {
-            try {
-                if (!clavesPermitidas.includes(clave)) {
-                    resultados.errores.push({
-                        clave,
-                        error: `Clave no permitida`
-                    });
-                    continue;
-                }
-
-                if (typeof valor !== 'string') {
-                    resultados.errores.push({
-                        clave,
-                        error: 'El valor debe ser una cadena de texto'
-                    });
-                    continue;
-                }
-
-                if (valor.length > 1000) {
-                    resultados.errores.push({
-                        clave,
-                        error: 'El texto no puede exceder los 1000 caracteres'
-                    });
-                    continue;
-                }
-
-                const textoExistente = await sql`
+          const textoExistente = await sql`
                     SELECT clave FROM textos_nuestroequipo WHERE clave = ${clave}
                 `;
 
-                if (textoExistente.length > 0) {
-                    await sql`
+          if (textoExistente.length > 0) {
+            await sql`
                         UPDATE textos_nuestroequipo 
                         SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
                         WHERE clave = ${clave}
                     `;
-                    resultados.actualizados.push(clave);
-                } else {
-                    await sql`
+            resultados.actualizados.push(clave);
+          } else {
+            await sql`
                         INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
                         VALUES (${clave}, ${valor.trim()}, ${`Texto editable para ${clave}`}, 'NuestroEquipo')
                     `;
-                    resultados.creados.push(clave);
-                }
-
-            } catch (error) {
-                resultados.errores.push({
-                    clave,
-                    error: error.message
-                });
-            }
+            resultados.creados.push(clave);
+          }
+        } catch (error) {
+          resultados.errores.push({
+            clave,
+            error: error.message,
+          });
         }
+      }
 
-        console.log(`✅ Actualización múltiple completada: 
+      console.log(`✅ Actualización múltiple completada: 
             ${resultados.actualizados.length} actualizados, 
             ${resultados.creados.length} creados, 
             ${resultados.errores.length} errores`);
 
-        res.json({
-            success: resultados.errores.length === 0,
-            mensaje: resultados.errores.length === 0 ? 
-                'Todos los textos fueron procesados correctamente' : 
-                'Algunos textos tuvieron errores',
-            data: resultados,
-            timestamp: new Date().toISOString()
-        });
-
+      res.json({
+        success: resultados.errores.length === 0,
+        mensaje:
+          resultados.errores.length === 0
+            ? "Todos los textos fueron procesados correctamente"
+            : "Algunos textos tuvieron errores",
+        data: resultados,
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-        console.error('❌ Error en actualizarMultiplesTextos:', error);
+      console.error("❌ Error en actualizarMultiplesTextos:", error);
 
-        res.status(500).json({
-            success: false,
-            mensaje: 'Error interno del servidor al procesar los textos',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+      res.status(500).json({
+        success: false,
+        mensaje: "Error interno del servidor al procesar los textos",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
     }
-}
+  }
 
-
-
-
-
-
-
-
-//Obtener todos los miembros de la junta directiva
-static async obtenerJuntaDirectiva(req, res) {
-  try {
-    const juntaDirectiva = await sql`
+  //Obtener todos los miembros de la junta directiva
+  static async obtenerJuntaDirectiva(req, res) {
+    try {
+      const juntaDirectiva = await sql`
       SELECT id_miembro, nombre, rol 
       FROM junta_directiva 
       WHERE activo = 'S' 
@@ -1218,216 +1228,220 @@ static async obtenerJuntaDirectiva(req, res) {
           ELSE 9
         END
     `;
-    
-    console.log('Junta directiva obtenida!', juntaDirectiva.length);
-    res.status(200).json(juntaDirectiva);
-  } catch (error) {
-    console.error('Error al obtener junta directiva:', error);
-    res.status(500).json({ 
-      mensaje: 'Error interno del servidor',
-      error: error.message 
-    });
-  }
-}
 
-// Agregar nuevo miembro a la junta directiva
-static async agregarMiembro(req, res) {
-  const { nombre, rol } = req.body;
-  
-  try {
-    // Validaciones
-    if (!nombre || !rol) {
-      return res.status(400).json({ 
-        mensaje: 'El nombre y rol son requeridos' 
+      console.log("Junta directiva obtenida!", juntaDirectiva.length);
+      res.status(200).json(juntaDirectiva);
+    } catch (error) {
+      console.error("Error al obtener junta directiva:", error);
+      res.status(500).json({
+        mensaje: "Error interno del servidor",
+        error: error.message,
       });
     }
+  }
 
-    // Verificar si el rol ya existe
-    const existing = await sql`
+  // Agregar nuevo miembro a la junta directiva
+  static async agregarMiembro(req, res) {
+    const { nombre, rol } = req.body;
+
+    try {
+      // Validaciones
+      if (!nombre || !rol) {
+        return res.status(400).json({
+          mensaje: "El nombre y rol son requeridos",
+        });
+      }
+
+      // Verificar si el rol ya existe
+      const existing = await sql`
       SELECT id_miembro 
       FROM junta_directiva 
       WHERE rol = ${rol} AND activo = 'S'
     `;
 
-    if (existing.length > 0) {
-      return res.status(400).json({ 
-        mensaje: `El rol "${rol}" ya está ocupado` 
-      });
-    }
+      if (existing.length > 0) {
+        return res.status(400).json({
+          mensaje: `El rol "${rol}" ya está ocupado`,
+        });
+      }
 
-    // Insertar nuevo miembro
-    const result = await sql`
+      // Insertar nuevo miembro
+      const result = await sql`
       INSERT INTO junta_directiva (nombre, rol, activo)
       VALUES (${nombre}, ${rol}, 'S')
       RETURNING id_miembro
     `;
 
-    res.status(201).json({
-      mensaje: 'Miembro agregado correctamente',
-      id_miembro: result[0].id_miembro,
-      nombre,
-      rol
-    });
-  } catch (error) {
-    console.error('Error al agregar miembro:', error);
-    res.status(500).json({ 
-      mensaje: 'Error interno del servidor',
-      error: error.message 
-    });
-  }
-}
-
-// Editar miembro existente
-static async editarMiembro(req, res) {
-  const { id } = req.params;
-  const { nombre, rol } = req.body;
-
-  try {
-    // Validaciones
-    if (!nombre || !rol) {
-      return res.status(400).json({ 
-        mensaje: 'El nombre y rol son requeridos' 
+      res.status(201).json({
+        mensaje: "Miembro agregado correctamente",
+        id_miembro: result[0].id_miembro,
+        nombre,
+        rol,
+      });
+    } catch (error) {
+      console.error("Error al agregar miembro:", error);
+      res.status(500).json({
+        mensaje: "Error interno del servidor",
+        error: error.message,
       });
     }
+  }
 
-    // Verificar si el miembro existe
-    const member = await sql`
+  // Editar miembro existente
+  static async editarMiembro(req, res) {
+    const { id } = req.params;
+    const { nombre, rol } = req.body;
+
+    try {
+      // Validaciones
+      if (!nombre || !rol) {
+        return res.status(400).json({
+          mensaje: "El nombre y rol son requeridos",
+        });
+      }
+
+      // Verificar si el miembro existe
+      const member = await sql`
       SELECT id_miembro 
       FROM junta_directiva 
       WHERE id_miembro = ${id} AND activo = 'S'
     `;
 
-    if (member.length === 0) {
-      return res.status(404).json({ 
-        mensaje: 'Miembro no encontrado' 
-      });
-    }
+      if (member.length === 0) {
+        return res.status(404).json({
+          mensaje: "Miembro no encontrado",
+        });
+      }
 
-    // Verificar si el rol ya está ocupado por otro miembro
-    const existing = await sql`
+      // Verificar si el rol ya está ocupado por otro miembro
+      const existing = await sql`
       SELECT id_miembro 
       FROM junta_directiva 
       WHERE rol = ${rol} AND id_miembro != ${id} AND activo = 'S'
     `;
 
-    if (existing.length > 0) {
-      return res.status(400).json({ 
-        mensaje: `El rol "${rol}" ya está ocupado por otro miembro` 
-      });
-    }
+      if (existing.length > 0) {
+        return res.status(400).json({
+          mensaje: `El rol "${rol}" ya está ocupado por otro miembro`,
+        });
+      }
 
-    // Actualizar miembro
-    const result = await sql`
+      // Actualizar miembro
+      const result = await sql`
       UPDATE junta_directiva 
       SET nombre = ${nombre}, rol = ${rol}
       WHERE id_miembro = ${id}
       RETURNING id_miembro, nombre, rol
     `;
 
-    if (result.length === 0) {
-      return res.status(404).json({ 
-        mensaje: 'Error al actualizar el miembro' 
+      if (result.length === 0) {
+        return res.status(404).json({
+          mensaje: "Error al actualizar el miembro",
+        });
+      }
+
+      res.status(200).json({
+        mensaje: "Miembro actualizado correctamente",
+        id_miembro: parseInt(id),
+        nombre,
+        rol,
+      });
+    } catch (error) {
+      console.error("Error al actualizar miembro:", error);
+      res.status(500).json({
+        mensaje: "Error interno del servidor",
+        error: error.message,
       });
     }
-
-    res.status(200).json({
-      mensaje: 'Miembro actualizado correctamente',
-      id_miembro: parseInt(id),
-      nombre,
-      rol
-    });
-  } catch (error) {
-    console.error('Error al actualizar miembro:', error);
-    res.status(500).json({ 
-      mensaje: 'Error interno del servidor',
-      error: error.message 
-    });
   }
-}
 
-// Eliminar miembro (soft delete)
-static async eliminarMiembro(req, res) {
-  const { id } = req.params;
+  // Eliminar miembro (soft delete)
+  static async eliminarMiembro(req, res) {
+    const { id } = req.params;
 
-  try {
-    // Verificar si el miembro existe
-    const member = await sql`
+    try {
+      // Verificar si el miembro existe
+      const member = await sql`
       SELECT id_miembro, nombre, rol 
       FROM junta_directiva 
       WHERE id_miembro = ${id} AND activo = 'S'
     `;
 
-    if (member.length === 0) {
-      return res.status(404).json({ 
-        mensaje: 'Miembro no encontrado' 
-      });
-    }
+      if (member.length === 0) {
+        return res.status(404).json({
+          mensaje: "Miembro no encontrado",
+        });
+      }
 
-    // Soft delete - marcar como inactivo
-    await sql`
+      // Soft delete - marcar como inactivo
+      await sql`
       UPDATE junta_directiva 
       SET activo = 'N' 
       WHERE id_miembro = ${id}
     `;
 
-    res.status(200).json({
-      mensaje: 'Miembro eliminado correctamente',
-      miembro_eliminado: member[0]
-    });
-  } catch (error) {
-    console.error('Error al eliminar miembro:', error);
-    res.status(500).json({ 
-      mensaje: 'Error interno del servidor',
-      error: error.message 
-    });
+      res.status(200).json({
+        mensaje: "Miembro eliminado correctamente",
+        miembro_eliminado: member[0],
+      });
+    } catch (error) {
+      console.error("Error al eliminar miembro:", error);
+      res.status(500).json({
+        mensaje: "Error interno del servidor",
+        error: error.message,
+      });
+    }
   }
-}
 
-static async obtenerusuarios(req, res) {
-   
+  static async obtenerusuarios(req, res) {
     try {
-       const usuarios = await sql`
+      const usuarios = await sql`
       SELECT id, nombre, email, rol 
       FROM USUARIOS
     `;
 
-        console.log('Usuarios cargados!', usuarios.length)
-        res.status(203).json( usuarios); //envia el arreglo de los videos cargados en un json
-      
+      console.log("Usuarios cargados!", usuarios.length);
+      res.status(203).json(usuarios); //envia el arreglo de los videos cargados en un json
     } catch (err) {
-      res.status(500).send({ mensaje: "Error al cargar los usuarios: " ,error: err.message });
+      res
+        .status(500)
+        .send({
+          mensaje: "Error al cargar los usuarios: ",
+          error: err.message,
+        });
     }
   }
 
   static async setrol(req, res) {
-  const { id } = req.params;
-  const { rol } = req.body;
+    const { id } = req.params;
+    const { rol } = req.body;
 
-  try {
-    const result = await sql`
+    try {
+      const result = await sql`
       UPDATE USUARIOS SET rol = ${rol} WHERE id = ${id}
     `;
 
-    res.status(203).send({ mensaje: "Rol actualizado correctamente!" });
-  } catch (err) {
-    res.status(500).send({ mensaje: "Error al setear el rol", error: err.message });
-  }
-}
-
-static async obtenerUid(req, res) {
-  try {
-    const uid = req.uid; // <- lo inyecta tu middleware de auth
-    if (!uid) {
-      return res.status(401).json({ error: "No autenticado" });
+      res.status(203).send({ mensaje: "Rol actualizado correctamente!" });
+    } catch (err) {
+      res
+        .status(500)
+        .send({ mensaje: "Error al setear el rol", error: err.message });
     }
-    return res.status(200).json({ id: uid });
-  } catch (error) {
-    console.error("Error en obtenerUid:", error);
-    return res.status(500).json({ mensaje: "Error al obtener id de usuario" });
   }
-}
 
-
-
+  static async obtenerUid(req, res) {
+    try {
+      const uid = req.uid; // <- lo inyecta tu middleware de auth
+      if (!uid) {
+        return res.status(401).json({ error: "No autenticado" });
+      }
+      return res.status(200).json({ id: uid });
+    } catch (error) {
+      console.error("Error en obtenerUid:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al obtener id de usuario" });
+    }
+  }
 }
 export default AuthController;

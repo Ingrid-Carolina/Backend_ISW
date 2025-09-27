@@ -66,6 +66,7 @@ router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthControlle
 router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthController.registrarenvivo);
 router.get('/obtenerenvivo',  AuthController.obtenerenvivo);
 router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
+router.patch('/envivo/mostrar-anuncio', requireAuth, requireRole('admin'), AuthController.setMostrarAnuncio);
 
 //NuestroEquipo
 router.get('/junta-directiva', AuthController.obtenerJuntaDirectiva); // Sin autenticación para mostrar públicamente
