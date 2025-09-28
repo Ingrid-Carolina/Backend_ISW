@@ -75,6 +75,8 @@ router.put('/testimoniosimages', requireAuth, requireRole('admin'), TestimoniosI
 router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthController.registrarenvivo);
 router.get('/obtenerenvivo', AuthController.obtenerenvivo);
 router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
+router.patch('/envivo/mostrar-anuncio', requireAuth, requireRole('admin'), AuthController.setMostrarAnuncio);
+
 
 //NuestroEquipo
 router.get('/junta-directiva', AuthController.obtenerJuntaDirectiva); // Sin autenticación para mostrar públicamente
@@ -208,6 +210,5 @@ router.put("/home/textos/bulk", requireAuth, requireRole("admin"), HomeTextContr
 router.get('/categorias', CategoriaImageController.getCategorias);
 router.put('/categorias/:id', CategoriaImageController.updateCategoria);
 
-router.patch('/envivo/mostrar-anuncio', requireAuth, requireRole('admin'), AuthController.setMostrarAnuncio);
 
 export default router;
