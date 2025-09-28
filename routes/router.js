@@ -204,6 +204,10 @@ router.get("/home/textos/:clave", HomeTextController.obtenerPorClave);
 router.put("/home/textos", requireAuth, requireRole("admin"), HomeTextController.upsert);
 router.put("/home/textos/bulk", requireAuth, requireRole("admin"), HomeTextController.upsertBulk);
 
+// Obtener todas las categorías
+router.get('/categorias', CategoriaImageController.getCategorias);
+router.put('/categorias/:id', CategoriaImageController.updateCategoria);
 
+router.patch('/envivo/mostrar-anuncio', requireAuth, requireRole('admin'), AuthController.setMostrarAnuncio);
 
 export default router;
