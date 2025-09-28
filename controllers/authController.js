@@ -1,18 +1,11 @@
-// Importa axios para realizar solicitudes HTTP.
 import axios from "axios";
-
-// Importa la configuración de Firebase y PostgreSQL.
 import auth from "../config/firebase.js";
 import { sql } from "../config/postgre.js";
-
-// Importa la función para enviar correos de confirmación.
 import enviarCorreoConfirmacion from "../utils/enviarcorreo.js";
-
-// Importa funciones específicas de Firebase Authentication.
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import admin from "../config/firebase-admin.js";
 
-// Importa funciones adicionales de Firebase Authentication.
+//import { sql } from "./postgre.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -20,30 +13,26 @@ import {
   sendEmailVerification,
 } from "firebase/auth";
 
-// Verifica si el entorno es de producción.
 const isProd = process.env.NODE_ENV === "production";
 
-// Configuración de cookies para autenticación.
 const cookieOptions = {
-  httpOnly: true, // Solo accesible desde el servidor.
-  secure: isProd, // Solo en producción con HTTPS.
-  sameSite: isProd ? "none" : "lax", // Configuración de seguridad para cookies.
-  path: "/", // Ruta donde la cookie es válida.
-  maxAge: 4 * 60 * 60 * 1000, // Tiempo de vida de la cookie (4 horas).
+  httpOnly: true,
+  secure: isProd, // true en producción con HTTPS
+  sameSite: isProd ? "none" : "lax",
+  path: "/",
+  maxAge: 4 * 60 * 60 * 1000, // 4 horas
 };
 
-// Controlador para manejar la autenticación.
 class AuthController {
-  // Función para registrar un nuevo usuario.
+  // Funcion para registrar usuario
   static async registrarUsuario(req, res) {
-    const { email, password, nombre } = req.body; // Obtiene los datos del cuerpo de la solicitud.
+    const { email, password, nombre } = req.body;
 
     try {
-      // Verifica si el usuario ya existe en la base de datos.
       const result = await sql`SELECT validar_usuario( ${email}, ${password})`;
 
       if (result[0].validar_usuario) {
-        // Si el usuario no existe, crea un nuevo usuario en Firebase Authentication.
+        // Extrae el boolean del arreglo del resultado
         const userCredentials = await createUserWithEmailAndPassword(
           auth,
           email,
@@ -52,10 +41,8 @@ class AuthController {
         const user = userCredentials.user;
         const uid = userCredentials.user.uid;
 
-        // Envía un correo de verificación al usuario.
         await sendEmailVerification(user);
 
-        // Prepara los datos del usuario para insertar en la base de datos.
         const userdata = {
           id: uid,
           nombre: nombre,
@@ -63,15 +50,12 @@ class AuthController {
           password: password,
         };
 
-        // Inserta los datos del usuario en la tabla Usuarios.
         await sql`INSERT INTO Usuarios ${sql(userdata)} `;
 
-        // Responde con un mensaje de éxito.
         res.status(203).send({
           mensaje: "Su usuario fue creado correctamente",
         });
       } else {
-        // Si el usuario ya existe, responde con un mensaje de error.
         res.status(400).send({
           mensaje: "Error: Email ya existe en la base de datos",
         });
@@ -895,7 +879,10 @@ static async actualizarMultiplesTextosTienda(req, res) {
 
 
 
+
+
 //Nuestroequipo
+
 
 
 
@@ -1203,6 +1190,10 @@ static async actualizarMultiplesTextos(req, res) {
         });
     }
 }
+
+
+
+
 
 
 

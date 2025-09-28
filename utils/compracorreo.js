@@ -1,4 +1,3 @@
-// Importa las dependencias necesarias para manejar la configuración y el envío de correos electrónicos.
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
@@ -7,18 +6,11 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
-// Configuración para obtener la ruta del archivo actual y su directorio.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Inicializa el cliente de Resend si la clave API está configurada.
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-/**
- * Divide una cadena de destinatarios en una lista, separando por comas o puntos y comas.
- * @param {string} envVarValue - Valor de la variable de entorno con los destinatarios.
- * @returns {string[]} Lista de destinatarios.
- */
 function splitRecipients(envVarValue) {
   return (envVarValue || '')
     .split(/[;,]/)
@@ -27,12 +19,6 @@ function splitRecipients(envVarValue) {
 }
 
 /* --- templates --- */
-/**
- * Genera el contenido HTML del correo para los administradores.
- * Incluye un resumen de los productos comprados y detalles de la orden.
- * @param {Object} data - Datos de la orden.
- * @returns {Promise<string>} Contenido HTML del correo.
- */
 async function renderAdminTemplate(data) {
   const templatePath = path.join(__dirname, '../templates/correo-orden.html');
   let html = await readFile(templatePath, 'utf-8');
@@ -71,12 +57,6 @@ async function renderAdminTemplate(data) {
   return html;
 }
 
-/**
- * Genera el contenido HTML del correo para los clientes.
- * Incluye un resumen de los productos comprados, el subtotal, el impuesto y el total.
- * @param {Object} data - Datos de la orden.
- * @returns {Promise<string>} Contenido HTML del correo.
- */
 async function renderClienteTemplate(data) {
   const templatePath = path.join(__dirname, '../templates/correo-compra-cliente.html');
   let html = await readFile(templatePath, 'utf-8');
@@ -120,11 +100,6 @@ async function renderClienteTemplate(data) {
 }
 
 /* --- envío del correo--- */
-/**
- * Envía correos electrónicos tanto al cliente como a los administradores.
- * Utiliza las plantillas HTML generadas para cada tipo de destinatario.
- * @param {Object} datos - Datos de la orden y del cliente.
- */
 export default async function enviarCorreoCompra(datos) {
   if (!resend) {
     console.error('RESEND_API_KEY no configurada. Evitando intento SMTP.');

@@ -1,13 +1,9 @@
-// Importa las dependencias necesarias para la validación de datos.
-import { check, param } from 'express-validator';
+import { check } from 'express-validator';
+import { param } from 'express-validator';
 import validateResult from '../utils/handleValidator.js';
 import { sql } from '../config/postgre.js';
 import admin from '../config/firebase-admin.js';
 
-/**
- * Validador para la creación de usuarios.
- * Verifica que los campos obligatorios estén presentes y cumplan con los requisitos.
- */
 export const CreateUserValidator = [
     check("nombre").notEmpty().withMessage('El nombre no debe estar en blanco.'),
     check("email").isEmail().exists().notEmpty().withMessage('Email es requerido y debe de ser un email real.'),
@@ -17,10 +13,6 @@ export const CreateUserValidator = [
     }
 ];
 
-/**
- * Validador para el inicio de sesión.
- * Verifica que el email y la contraseña sean proporcionados.
- */
 export const SignInValidator = [
     check("email").exists().notEmpty().withMessage('Email es requerido.'),
     check("password").exists().notEmpty().withMessage('Password es requerido.'),
@@ -29,10 +21,6 @@ export const SignInValidator = [
     }
 ];
 
-/**
- * Validador para el registro de formularios.
- * Verifica que los campos obligatorios estén presentes.
- */
 export const RegistrarFormularioValidator = [
     check("email").exists().notEmpty().withMessage('Email es requerido.'),
     check("password").exists().notEmpty().withMessage('Password es requerido.'),
@@ -41,10 +29,6 @@ export const RegistrarFormularioValidator = [
     }
 ];
 
-/**
- * Validador para el formulario de contacto.
- * Verifica que los campos cumplan con los requisitos de formato y contenido.
- */
 export const ContactFormValidator = [
 	check('nombre')
 		.trim()
@@ -102,12 +86,10 @@ export const ContactFormValidator = [
    (req, res, next) => {
         validateResult(req, res, next);
     }
+
+
 ];
 
-/**
- * Validador para la edición del perfil de usuario.
- * Verifica que los campos cumplan con los requisitos de formato y contenido.
- */
 export const EditProfileValidator = [
   check('nombre')
     .notEmpty().withMessage('El nombre es obligatorio.')
@@ -115,15 +97,12 @@ export const EditProfileValidator = [
     .escape()
     .isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres.')
     .matches(/^[A-Za-zÀ-ÿ\s]+$/).withMessage('El nombre solo puede contener letras.'),
+
   (req, res, next) => {
     validateResult(req, res, next);
   }
 ];
 
-/**
- * Middleware para verificar el token de autenticación en las cookies.
- * Valida el token proporcionado y lo decodifica para obtener el UID del usuario.
- */
 const verificarToken = async (req, res, next) => {
   const token = req.cookies.token;
 
@@ -141,12 +120,9 @@ const verificarToken = async (req, res, next) => {
   }
 };
 
+
 export default verificarToken;
 
-/**
- * Validador para el formulario de donaciones.
- * Verifica que los campos cumplan con los requisitos de formato y contenido.
- */
 export const DonacionesFormValidator = [
 	check('nombre')
 		.trim()
@@ -178,6 +154,8 @@ export const DonacionesFormValidator = [
   })
   .withMessage('El año debe ser 2025 o posterior'),
 
+
+
   check('horario')
   .trim()
   .escape()
@@ -197,4 +175,6 @@ export const DonacionesFormValidator = [
    (req, res, next) => {
         validateResult(req, res, next);
     }
+
+
 ];

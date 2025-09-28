@@ -1,59 +1,51 @@
-// Importa el cliente SQL desde la configuración de PostgreSQL.
 import { sql } from '../config/postgre.js';
-
-// Importa multer para manejar la subida de archivos.
 import multer from 'multer';
-
-// Importa path para manejar rutas de archivos y fs para interactuar con el sistema de archivos.
 import path from 'path';
 import fs from 'fs';
 
-// Define la carpeta donde se subirán las imágenes.
+// Carpeta de subida de imágenes
 const uploadDir = 'uploads';
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir); // Crea la carpeta si no existe.
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
-// Configuración de almacenamiento para multer.
+// Configuración de Multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir), // Define la carpeta de destino.
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    // Genera un nombre único para cada archivo subido.
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   },
 });
 
-// Configura multer para manejar un solo archivo con el nombre de campo 'file'.
-const upload = multer({ storage }).single('file'); // 'file' debe coincidir con FormData del frontend.
+const upload = multer({ storage }).single('file'); // 'file' debe coincidir con FormData del frontend
 
-// Controlador para manejar las imágenes de categorías.
 class CategoriasImagesController {
-  // Método para obtener todas las imágenes de la base de datos.
+  // Obtener todas las imágenes
   static async getImages(req, res) {
     try {
-      const result = await sql`SELECT type, url FROM categorias_images`; // Consulta SQL para obtener las imágenes.
-      res.status(200).json(result); // Devuelve las imágenes en formato JSON con el código de estado 200.
+      const result = await sql`SELECT type, url FROM categorias_images`;
+      res.status(200).json(result);
     } catch (err) {
       console.error('Error al obtener imágenes:', err);
-      res.status(500).json({ error: 'Error al obtener imágenes de Categorías.' }); // Devuelve un error en caso de fallo.
+      res.status(500).json({ error: 'Error al obtener imágenes de Categorías.' });
     }
   }
 
-  // Método para actualizar la URL de una imagen en la base de datos.
+  // Actualizar URL de imagen
   static async updateImage(req, res) {
     try {
-      const { type, url } = req.body; // Obtiene los datos del cuerpo de la solicitud.
-      if (!type || !url) return res.status(400).json({ error: 'Se requieren tipo y URL.' }); // Verifica que se proporcionen los datos requeridos.
+      const { type, url } = req.body;
+      if (!type || !url) return res.status(400).json({ error: 'Se requieren tipo y URL.' });
 
       await sql`
         INSERT INTO categorias_images (type, url)
         VALUES (${type}, ${url})
         ON CONFLICT (type) DO UPDATE SET url = EXCLUDED.url
-      `; // Inserta o actualiza la URL de la imagen en la base de datos.
+      `;
 
-      res.json({ message: 'Imagen actualizada correctamente.' }); // Responde con un mensaje de éxito.
+      res.json({ message: 'Imagen actualizada correctamente.' });
     } catch (err) {
       console.error('Error al actualizar imagen:', err);
-      res.status(500).json({ error: 'Error al actualizar imagen en DB.' }); // Devuelve un error en caso de fallo.
+      res.status(500).json({ error: 'Error al actualizar imagen en DB.' });
     }
   }
 

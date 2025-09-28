@@ -1,12 +1,8 @@
-// Importa el cliente SQL desde la configuración de PostgreSQL.
 import { sql } from "../config/postgre.js";
 
-// Define el controlador para manejar las operaciones relacionadas con el contacto.
 export default class contactoController {
-  // Método para obtener los datos de contacto desde la base de datos.
   static async obtener(req, res) {
     try {
-      // Consulta SQL para obtener los datos de contacto.
       const rows = await sql`
         SELECT id, org_nombre, telefono_lbl, telefono_val, email_lbl, email_val,
                texto_intro, texto_cta, header_title, updated_at
@@ -16,7 +12,7 @@ export default class contactoController {
       `;
 
       if (!rows.length) {
-        // Devuelve valores predeterminados si no hay registros en la base de datos.
+        // Defaults si no hay registro
         return res.status(200).json({
           id: 1,
           org_nombre: "Organización de Béisbol PILOTOS - FAH",
@@ -31,20 +27,17 @@ export default class contactoController {
         });
       }
 
-      // Devuelve el primer registro encontrado en la base de datos.
       const row = rows[0];
       return res.status(200).json({
         ...row,
-        header_title: row.header_title ?? "Ponte en Contacto", // Valor predeterminado si header_title es nulo.
+        header_title: row.header_title ?? "Ponte en Contacto",
       });
     } catch (e) {
-      // Manejo de errores en caso de fallo en la consulta SQL.
       console.error("obtener contacto error:", e);
       return res.status(500).json({ mensaje: "Error al obtener contacto" });
     }
   }
 
-  // Método para actualizar los datos de contacto en la base de datos.
   static async actualizar(req, res) {
     try {
       const {
@@ -55,7 +48,7 @@ export default class contactoController {
         email_val,
         texto_intro,
         texto_cta,
-        header_title,
+        header_title, 
       } = req.body;
 
       // Valida mínimos

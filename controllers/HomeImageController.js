@@ -1,57 +1,47 @@
-// Importa el cliente SQL desde la configuración de PostgreSQL.
 import { sql } from '../config/postgre.js';
-
-// Importa multer para manejar la subida de archivos.
 import multer from 'multer';
+import path from 'path'; 
 
-// Importa path para manejar rutas de archivos.
-import path from 'path';
-
-// Configuración de almacenamiento para multer.
+// Configuración de Multer (ejemplo básico)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Define la carpeta de destino para los archivos subidos.
+    // Asegúrate de que esta carpeta exista en tu proyecto
     cb(null, 'uploads/'); 
   },
   filename: function (req, file, cb) {
-    // Genera un nombre único para cada archivo subido.
+    // Genera un nombre de archivo único para evitar colisiones
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// Configura multer para manejar un solo archivo con el nombre de campo 'file'.
-const upload = multer({ storage: storage }).single('file'); // 'file' debe coincidir con el nombre en formData del frontend.
+const upload = multer({ storage: storage }).single('file'); // 'file' debe coincidir con el nombre en formData del frontend
 
-// Controlador para manejar las imágenes de la página de inicio.
 class HomeImageController {
-    // Método para obtener todas las imágenes de la base de datos.
     static async getImages(req, res) {
       try {
         console.log('Intentando obtener imágenes de la tabla home_images...');
-        const result = await sql`SELECT type, url FROM home_images`; // Consulta SQL para obtener las imágenes.
+        const result = await sql`SELECT type, url FROM home_images`;
         console.log('Resultado de la consulta:', result);
-        res.status(203).json(result); // Devuelve las imágenes en formato JSON con el código de estado 203.
+        res.status(203).json(result);
       } catch (error) {
         console.error('🚨 ERROR al obtener las imágenes 🚨');
         console.error('Mensaje del error:', error.message);
-        res.status(500).json({ error: 'Error al obtener las imágenes' }); // Manejo de errores en caso de fallo.
+        res.status(500).json({ error: 'Error al obtener las imágenes' });
       }
     }
 
-    // Método para actualizar o insertar una imagen en la base de datos.
     static async updateImage(req, res) {
       try {
-        const { type, url } = req.body; // Obtiene los datos del cuerpo de la solicitud.
+        const { type, url } = req.body;
         if (!type || !url) {
-          // Verifica que se proporcionen los datos requeridos.
           return res.status(400).json({ error: 'Se requieren el tipo de imagen y la URL' });
         }
 
         await sql`
           INSERT INTO home_images (type, url) VALUES (${type}, ${url})
           ON CONFLICT (type) DO UPDATE SET url = EXCLUDED.url
-        `; // Inserta o actualiza la URL de la imagen en la base de datos.
+        `;
 
         res.json({ message: 'URL de imagen actualizada exitosamente.' });
       } catch (error) {
