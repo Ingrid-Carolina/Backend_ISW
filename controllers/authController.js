@@ -1700,6 +1700,268 @@ static async actualizarMultiplesTextosAliados(req, res) {
     }
 }
 
+//Nuetras Historia
+// Historia - Métodos para textos editables
+static async obtenerTextosHistoria(req, res) {
+    try {
+        console.log('📖 HISTORIA: Solicitando todos los textos de Historia...');
+        
+        const textos = await sql`
+            SELECT clave, valor, descripcion, updated_at
+            FROM textos_nuestroequipo
+            WHERE clave LIKE 'historia_%'
+            ORDER BY clave ASC
+        `;
+
+        // Transformar a objeto clave-valor (mantener las claves completas)
+        const textosObject = {};
+        textos.forEach(texto => {
+            textosObject[texto.clave] = texto.valor;
+        });
+
+        console.log(`✅ ${textos.length} textos de historia cargados exitosamente`);
+        
+        res.json({
+            success: true,
+            data: textosObject,
+            count: textos.length,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en obtenerTextosHistoria:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al cargar los textos de historia',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+// 2. Actualizar texto individual de Historia
+static async actualizarTextoHistoria(req, res) {    
+    try {
+        const { clave, valor } = req.body;
+
+        console.log('📝 Solicitud de actualización de texto de historia:', { clave, valor });
+
+        if (!clave || typeof clave !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'La clave del texto es requerida y debe ser una cadena de texto'
+            });
+        }
+
+        if (!valor && valor !== '') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor del texto es requerido'
+            });
+        }
+
+        if (typeof valor !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor debe ser una cadena de texto'
+            });
+        }
+
+        if (valor.length > 2000) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El texto no puede exceder los 2000 caracteres'
+            });
+        }
+
+        // Claves permitidas para Historia
+        const clavesPermitidas = [
+            'historia_titulo_principal',
+            'historia_quienes_somos_titulo',
+            'historia_quienes_somos_parrafo',
+            'historia_inicios_titulo',
+            'historia_inicios_parrafo',
+            'historia_impacto_titulo',
+            'historia_impacto_parrafo',
+            'historia_valores_titulo',
+            'historia_valores_parrafo',
+            'historia_galeria_titulo'
+        ];
+
+        if (!clavesPermitidas.includes(clave)) {
+            return res.status(400).json({
+                success: false,
+                mensaje: `Clave "${clave}" no permitida para historia. Claves válidas: ${clavesPermitidas.join(', ')}`
+            });
+        }
+
+        // Verificar si existe (SIN filtro por sección ya que las claves son únicas)
+        const textoExistente = await sql`
+            SELECT clave FROM textos_nuestroequipo 
+            WHERE clave = ${clave}
+        `;
+
+        let resultado;
+        if (textoExistente.length > 0) {
+            // Actualizar
+            resultado = await sql`
+                UPDATE textos_nuestroequipo 
+                SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                WHERE clave = ${clave}
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`✏️ Texto de historia "${clave}" actualizado`);
+        } else {
+            // Insertar nuevo
+            resultado = await sql`
+                INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                VALUES (${clave}, ${valor.trim()}, ${`Texto editable para historia: ${clave}`}, 'Historia')
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`🆕 Texto de historia "${clave}" creado`);
+        }
+
+        res.json({
+            success: true,
+            mensaje: 'Texto de historia guardado correctamente',
+            data: resultado[0],
+            action: textoExistente.length > 0 ? 'updated' : 'created',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarTextoHistoria:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al guardar el texto de historia',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+// 3. Actualizar múltiples textos de Historia
+static async actualizarMultiplesTextosHistoria(req, res) {
+    try {
+        const { textos } = req.body;
+
+        console.log('📝 Solicitud de actualización múltiple de historia:', { 
+            cantidad: textos ? Object.keys(textos).length : 0 
+        });
+
+        if (!textos || typeof textos !== 'object') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El formato de textos es inválido. Debe ser un objeto clave-valor.'
+            });
+        }
+
+        if (Object.keys(textos).length === 0) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'No se proporcionaron textos para actualizar'
+            });
+        }
+
+        // MISMAS claves permitidas que en el método individual
+        const clavesPermitidas = [
+            'historia_titulo_principal',
+            'historia_quienes_somos_titulo',
+            'historia_quienes_somos_parrafo',
+            'historia_inicios_titulo',
+            'historia_inicios_parrafo',
+            'historia_impacto_titulo',
+            'historia_impacto_parrafo',
+            'historia_valores_titulo',
+            'historia_valores_parrafo',
+            'historia_galeria_titulo'
+        ];
+
+        const resultados = {
+            actualizados: [],
+            creados: [],
+            errores: []
+        };
+
+        // Procesar cada texto individualmente
+        for (const [clave, valor] of Object.entries(textos)) {
+            try {
+                if (!clavesPermitidas.includes(clave)) {
+                    resultados.errores.push({
+                        clave,
+                        error: `Clave no permitida para historia`
+                    });
+                    continue;
+                }
+
+                if (typeof valor !== 'string') {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El valor debe ser una cadena de texto'
+                    });
+                    continue;
+                }
+
+                if (valor.length > 2000) {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El texto no puede exceder los 2000 caracteres'
+                    });
+                    continue;
+                }
+
+                const textoExistente = await sql`
+                    SELECT clave FROM textos_nuestroequipo 
+                    WHERE clave = ${clave}
+                `;
+
+                if (textoExistente.length > 0) {
+                    await sql`
+                        UPDATE textos_nuestroequipo 
+                        SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                        WHERE clave = ${clave}
+                    `;
+                    resultados.actualizados.push(clave);
+                } else {
+                    await sql`
+                        INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                        VALUES (${clave}, ${valor.trim()}, ${`Texto editable para historia: ${clave}`}, 'Historia')
+                    `;
+                    resultados.creados.push(clave);
+                }
+
+            } catch (error) {
+                resultados.errores.push({
+                    clave,
+                    error: error.message
+                });
+            }
+        }
+
+        console.log(`✅ Actualización múltiple de historia completada: 
+            ${resultados.actualizados.length} actualizados, 
+            ${resultados.creados.length} creados, 
+            ${resultados.errores.length} errores`);
+
+        res.json({
+            success: resultados.errores.length === 0,
+            mensaje: resultados.errores.length === 0 ? 
+                'Todos los textos de historia fueron procesados correctamente' : 
+                'Algunos textos de historia tuvieron errores',
+            data: resultados,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarMultiplesTextosHistoria:', error);
+
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al procesar los textos de historia',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
 
 
 

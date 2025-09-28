@@ -181,7 +181,11 @@ router.put('/aliados/textos/multiple', requireAuth, requireRole('admin'), AuthCo
 
 
 
-
+//Historia editar texto
+router.get('/historia/textos', AuthController.obtenerTextosHistoria);
+router.get('/historia/textos/:clave', AuthController.obtenerTextoPorClave);
+router.put('/historia/textos', requireAuth, requireRole('admin'), AuthController.actualizarTextoHistoria);
+router.put('/historia/textos/multiple', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextosHistoria);
 
 
 export default router;
