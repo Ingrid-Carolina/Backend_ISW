@@ -1427,6 +1427,16 @@ static async obtenerUid(req, res) {
   }
 }
 
+static async obteneridorden(req, res) {
+  try {
+    
+    const idorden= await sql `SELECT idorden FROM ORDENES ORDER BY idorden DESC LIMIT 1`;
+    return res.status(200).json(idorden);
+  } catch (error) {
+    console.error("Error al obtener idorden:", error);
+    return res.status(500).json({ mensaje: "Error al obtener id de la orden" });
+  }
+}
 
 
 }

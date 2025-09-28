@@ -136,6 +136,7 @@ router.get('/donaciones', ProductosDonacionController.getDonaciones);
 router.get('/ordenes', OrdenController.getOrdenes);
 router.get('/ordenes/:idorden/productos_comprados', OrdenController.getProductosbyID);
 router.get('/ordenes/:id', OrdenController.getOrdenById);
+router.get('/idorden', AuthController.obteneridorden);
 router.put('/orden/:idorden', OrdenController.setestado);
 router.post('/agregarorden', requireAuth, OrdenController.addOrden);
 router.put('/modificarorden/:id', requireAuth, OrdenController.actualizarOrden);
