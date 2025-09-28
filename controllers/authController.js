@@ -1439,5 +1439,270 @@ static async obteneridorden(req, res) {
 }
 
 
+
+//Aliados
+
+static async obtenerTextosAliados(req, res) {
+    try {
+        console.log('📖 ALIADOS: Solicitando todos los textos de Aliados...');
+        
+        const textos = await sql`
+            SELECT clave, valor, descripcion, updated_at
+            FROM textos_nuestroequipo
+            WHERE clave LIKE 'aliados_%'
+            ORDER BY clave ASC
+        `;
+
+        // Transformar a objeto clave-valor (mantener las claves completas)
+        const textosObject = {};
+        textos.forEach(texto => {
+            textosObject[texto.clave] = texto.valor;
+        });
+
+        console.log(`✅ ${textos.length} textos de aliados cargados exitosamente`);
+        
+        res.json({
+            success: true,
+            data: textosObject,
+            count: textos.length,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en obtenerTextosAliados:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al cargar los textos de aliados',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+// 2. Actualizar texto individual de Aliados
+static async actualizarTextoAliados(req, res) {    
+    try {
+        const { clave, valor } = req.body;
+
+        console.log('🔄 Solicitud de actualización de texto de aliados:', { clave, valor });
+
+        if (!clave || typeof clave !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'La clave del texto es requerida y debe ser una cadena de texto'
+            });
+        }
+
+        if (!valor && valor !== '') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor del texto es requerido'
+            });
+        }
+
+        if (typeof valor !== 'string') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El valor debe ser una cadena de texto'
+            });
+        }
+
+        if (valor.length > 2000) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El texto no puede exceder los 2000 caracteres'
+            });
+        }
+
+        // ACTUALIZADO: Claves permitidas para Aliados (incluyendo descripciones individuales)
+        const clavesPermitidas = [
+            'aliados_titulo_principal',
+            'aliados_subtitulo_hero',
+            'aliados_descripcion_socios',
+            'aliados_titulo_socios',
+            'aliados_titulo_estrategicos',
+            'aliados_subtitulo_estrategicos',
+            // Nuevas claves para descripciones individuales
+            'aliado_lufussa_descripcion',
+            'aliado_mobile_descripcion',
+            'aliado_dental_descripcion',
+            'aliado_angelitos_descripcion',
+            'aliado_faerea_descripcion',
+        ];
+
+        if (!clavesPermitidas.includes(clave)) {
+            return res.status(400).json({
+                success: false,
+                mensaje: `Clave "${clave}" no permitida para aliados. Claves válidas: ${clavesPermitidas.join(', ')}`
+            });
+        }
+
+        // Verificar si existe (SIN filtro por sección ya que las claves son únicas)
+        const textoExistente = await sql`
+            SELECT clave FROM textos_nuestroequipo 
+            WHERE clave = ${clave}
+        `;
+
+        let resultado;
+        if (textoExistente.length > 0) {
+            // Actualizar
+            resultado = await sql`
+                UPDATE textos_nuestroequipo 
+                SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                WHERE clave = ${clave}
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`✏️ Texto de aliados "${clave}" actualizado`);
+        } else {
+            // Insertar nuevo
+            resultado = await sql`
+                INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                VALUES (${clave}, ${valor.trim()}, ${`Texto editable para aliados: ${clave}`}, 'Aliados')
+                RETURNING clave, valor, descripcion, updated_at
+            `;
+            console.log(`🆕 Texto de aliados "${clave}" creado`);
+        }
+
+        res.json({
+            success: true,
+            mensaje: 'Texto de aliados guardado correctamente',
+            data: resultado[0],
+            action: textoExistente.length > 0 ? 'updated' : 'created',
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarTextoAliados:', error);
+        
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al guardar el texto de aliados',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+// 3. Actualizar múltiples textos de Aliados
+static async actualizarMultiplesTextosAliados(req, res) {
+    try {
+        const { textos } = req.body;
+
+        console.log('🔄 Solicitud de actualización múltiple de aliados:', { 
+            cantidad: textos ? Object.keys(textos).length : 0 
+        });
+
+        if (!textos || typeof textos !== 'object') {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El formato de textos es inválido. Debe ser un objeto clave-valor.'
+            });
+        }
+
+        if (Object.keys(textos).length === 0) {
+            return res.status(400).json({
+                success: false,
+                mensaje: 'No se proporcionaron textos para actualizar'
+            });
+        }
+
+        // MISMAS claves permitidas que en el método individual
+        const clavesPermitidas = [
+            'aliados_titulo_principal',
+            'aliados_subtitulo_hero',
+            'aliados_descripcion_socios',
+            'aliados_titulo_socios',
+            'aliados_titulo_estrategicos',
+            'aliados_subtitulo_estrategicos'
+        ];
+
+        const resultados = {
+            actualizados: [],
+            creados: [],
+            errores: []
+        };
+
+        // Procesar cada texto individualmente
+        for (const [clave, valor] of Object.entries(textos)) {
+            try {
+                if (!clavesPermitidas.includes(clave)) {
+                    resultados.errores.push({
+                        clave,
+                        error: `Clave no permitida para aliados`
+                    });
+                    continue;
+                }
+
+                if (typeof valor !== 'string') {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El valor debe ser una cadena de texto'
+                    });
+                    continue;
+                }
+
+                if (valor.length > 2000) {
+                    resultados.errores.push({
+                        clave,
+                        error: 'El texto no puede exceder los 2000 caracteres'
+                    });
+                    continue;
+                }
+
+                const textoExistente = await sql`
+                    SELECT clave FROM textos_nuestroequipo 
+                    WHERE clave = ${clave}
+                `;
+
+                if (textoExistente.length > 0) {
+                    await sql`
+                        UPDATE textos_nuestroequipo 
+                        SET valor = ${valor.trim()}, updated_at = CURRENT_TIMESTAMP
+                        WHERE clave = ${clave}
+                    `;
+                    resultados.actualizados.push(clave);
+                } else {
+                    await sql`
+                        INSERT INTO textos_nuestroequipo (clave, valor, descripcion, seccion)
+                        VALUES (${clave}, ${valor.trim()}, ${`Texto editable para aliados: ${clave}`}, 'Aliados')
+                    `;
+                    resultados.creados.push(clave);
+                }
+
+            } catch (error) {
+                resultados.errores.push({
+                    clave,
+                    error: error.message
+                });
+            }
+        }
+
+        console.log(`✅ Actualización múltiple de aliados completada: 
+            ${resultados.actualizados.length} actualizados, 
+            ${resultados.creados.length} creados, 
+            ${resultados.errores.length} errores`);
+
+        res.json({
+            success: resultados.errores.length === 0,
+            mensaje: resultados.errores.length === 0 ? 
+                'Todos los textos de aliados fueron procesados correctamente' : 
+                'Algunos textos de aliados tuvieron errores',
+            data: resultados,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error en actualizarMultiplesTextosAliados:', error);
+
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error interno del servidor al procesar los textos de aliados',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+
+
+
 }
 export default AuthController;

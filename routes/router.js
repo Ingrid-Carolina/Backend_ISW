@@ -173,6 +173,15 @@ router.get('/obteneruid', requireAuth, AuthController.obtenerUid);
 //obtener ultima orden
 router.get('/ultimaorden',OrdenController.getultimaorden);
 
+//aliados editar texto 
+router.get('/aliados/textos', AuthController.obtenerTextosAliados);
+router.get('/aliados/textos/:clave', AuthController.obtenerTextoPorClave);
+router.put('/aliados/textos', requireAuth, requireRole('admin'), AuthController.actualizarTextoAliados);
+router.put('/aliados/textos/multiple', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextosAliados);
+
+
+
+
 
 
 export default router;
