@@ -26,8 +26,10 @@
     "firebase-admin": "^13.4.0",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.3",
+    "path": "^0.12.7",
     "postgres": "^3.4.7",
-    "resend": "^6.1.0"
+    "resend": "^6.1.0",
+    "url": "^0.11.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

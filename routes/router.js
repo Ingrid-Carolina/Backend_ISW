@@ -20,6 +20,7 @@ import testimoniosController from '../controllers/testimoniosController.js';
 import ContactoImageController from '../controllers/ContactoImageController.js';
 import CategoriaImageController from '../controllers/CategoriaImageController.js';
 import NuestroEquipoImageController from '../controllers/NuestroEquipoImageController.js';
+import HomeTextController from '../controllers/HomeTextController.js';
 
 const router = express.Router();
 
@@ -46,23 +47,23 @@ router.put('/editarperfil', requireAuth, EditProfileValidator, AuthController.ed
 router.get('/obtenerperfil', requireAuth, AuthController.obtenerPerfil);
 
 //eventos
-router.get('/obtenereventos',eventController.obtenerEventos);
+router.get('/obtenereventos', eventController.obtenerEventos);
 router.post('/registrarevento', requireAuth, requireRole('admin', 'admin-calendario'), uploadImages.single('file'), eventController.registrarEvento);
 router.put('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), uploadImages.single('file'), eventController.actualizarEvento);
 router.delete('/evento/:id', requireAuth, requireRole('admin', 'admin-calendario'), eventController.eliminarEvento);
 
 // noticias
-router.get('/noticias', NoticiaController.getNoticias); 
+router.get('/noticias', NoticiaController.getNoticias);
 router.post('/agregarnoticia/:autor_id', requireAuth, requireRole('admin'), NoticiaController.addNoticia);
-router.put('/modificarnoticia/:id/:autor_id' ,requireAuth, requireRole('admin'), NoticiaController.actualizarNoticia);
+router.put('/modificarnoticia/:id/:autor_id', requireAuth, requireRole('admin'), NoticiaController.actualizarNoticia);
 router.delete('/eliminarnoticia/:id', requireAuth, requireRole('admin'), NoticiaController.eliminarNoticia);
-router.get('/noticias/:id', NoticiaController.getNoticiaById); 
+router.get('/noticias/:id', NoticiaController.getNoticiaById);
 
 //testimonios
-router.get('/obtenertestimonios',AuthController.obtenerTestimonios);
-router.post('/registrartestimonio',requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
-router.put('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
-router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
+router.get('/obtenertestimonios', AuthController.obtenerTestimonios);
+router.post('/registrartestimonio', requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
+router.put('/testimonio/:id', requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
+router.delete('/testimonio/:id', requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
 
 // Agregar al router.js junto con las otras rutas
 router.get('/testimoniossite', testimoniosController.obtener);
@@ -72,14 +73,14 @@ router.put('/testimoniosimages', requireAuth, requireRole('admin'), TestimoniosI
 
 //envivo
 router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthController.registrarenvivo);
-router.get('/obtenerenvivo',  AuthController.obtenerenvivo);
+router.get('/obtenerenvivo', AuthController.obtenerenvivo);
 router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
 
 //NuestroEquipo
 router.get('/junta-directiva', AuthController.obtenerJuntaDirectiva); // Sin autenticación para mostrar públicamente
 router.post('/junta-directiva', requireAuth, requireRole('admin'), AuthController.agregarMiembro);
 router.put('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.editarMiembro);
-router.delete('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.eliminarMiembro); 
+router.delete('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.eliminarMiembro);
 
 
 
@@ -127,8 +128,8 @@ router.post('/registrardonacion', DonacionesFormValidator, ProductosDonacionCont
 // productos tienda
 router.get("/tienda/productos", ProductoController.getProductos);
 router.get("/tienda/productos/:id", ProductoController.getProductoById);
-router.post("/tienda/agregarproducto", requireAuth, requireRole("admin"), ProductoController.addProducto);
-router.put("/tienda/modificarproducto/:id", requireAuth, requireRole("admin"), ProductoController.actualizarProducto);
+router.post("/tienda/agregarproducto", requireAuth, requireRole("admin"), uploadImages.single('file'), ProductoController.addProducto);
+router.put("/tienda/modificarproducto/:id", requireAuth, requireRole("admin"), uploadImages.single('file'), ProductoController.actualizarProducto);
 router.delete("/tienda/eliminarproducto/:id", requireAuth, requireRole("admin"), ProductoController.eliminarProducto);
 
 // productos donación
@@ -160,14 +161,14 @@ router.delete('/eliminardetalle/:id', requireAuth, requireRole('admin'), Detalle
 
 //contacto
 router.get('/contacto', contactoController.obtener);
-router.put('/contacto',requireAuth, requireRole('admin'), contactoController.actualizar);
+router.put('/contacto', requireAuth, requireRole('admin'), contactoController.actualizar);
 router.get('/contactoimages', ContactoImageController.getImages);
 router.put('/contactoimages', requireAuth, requireRole('admin'), ContactoImageController.updateImage);
 
 //Promote Usuario
 
 router.get('/obtenerusuarios', AuthController.obtenerusuarios);
-router.put('/usuario/:id', AuthController.setrol);router.get('/images', HomeImageController.getImages);
+router.put('/usuario/:id', AuthController.setrol); router.get('/images', HomeImageController.getImages);
 
 //Categorias
 router.get('/images', CategoriaImageController.getImages);
@@ -178,7 +179,7 @@ router.put('/images', CategoriaImageController.updateImage);
 router.get('/obteneruid', requireAuth, AuthController.obtenerUid);
 
 //obtener ultima orden
-router.get('/ultimaorden',OrdenController.getultimaorden);
+router.get('/ultimaorden', OrdenController.getultimaorden);
 
 //aliados editar texto 
 router.get('/aliados/textos', AuthController.obtenerTextosAliados);
@@ -193,6 +194,16 @@ router.get('/historia/textos', AuthController.obtenerTextosHistoria);
 router.get('/historia/textos/:clave', AuthController.obtenerTextoPorClave);
 router.put('/historia/textos', requireAuth, requireRole('admin'), AuthController.actualizarTextoHistoria);
 router.put('/historia/textos/multiple', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextosHistoria);
+
+//Home editar texto
+// Públicos (cualquiera puede leer los textos de Home)
+router.get("/home/textos", HomeTextController.obtenerTodos);
+router.get("/home/textos/:clave", HomeTextController.obtenerPorClave);
+
+// Protegidos (solo admin puede escribir)
+router.put("/home/textos", requireAuth, requireRole("admin"), HomeTextController.upsert);
+router.put("/home/textos/bulk", requireAuth, requireRole("admin"), HomeTextController.upsertBulk);
+
 
 
 export default router;
