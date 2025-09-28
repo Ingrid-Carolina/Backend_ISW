@@ -18,6 +18,7 @@ import AliadosImageController from '../controllers/TestimoniosImageController.js
 import TestimoniosImageController from '../controllers/TestimoniosImageController.js';
 import ContactoImageController from '../controllers/ContactoImageController.js';
 import CategoriaImageController from '../controllers/CategoriaImageController.js';
+import NuestroEquipoImageController from '../controllers/NuestroEquipoImageController.js';
 
 const router = express.Router();
 
@@ -66,13 +67,18 @@ router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthControlle
 router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthController.registrarenvivo);
 router.get('/obtenerenvivo',  AuthController.obtenerenvivo);
 router.put('/video/:id', requireAuth, requireRole('admin'), AuthController.actualizarenvivo);
-router.patch('/envivo/mostrar-anuncio', requireAuth, requireRole('admin'), AuthController.setMostrarAnuncio);
 
 //NuestroEquipo
 router.get('/junta-directiva', AuthController.obtenerJuntaDirectiva); // Sin autenticación para mostrar públicamente
 router.post('/junta-directiva', requireAuth, requireRole('admin'), AuthController.agregarMiembro);
 router.put('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.editarMiembro);
 router.delete('/junta-directiva/:id', requireAuth, requireRole('admin'), AuthController.eliminarMiembro); 
+
+
+
+// NuestroEquipo imágenes
+router.get('/nuestroequipo/images', NuestroEquipoImageController.getImages);
+router.put('/nuestroequipo/images', requireAuth, requireRole('admin'), NuestroEquipoImageController.updateImage)
 
 
 //Nuestro Equipo. editar texto
@@ -166,9 +172,6 @@ router.get('/obteneruid', requireAuth, AuthController.obtenerUid);
 //obtener ultima orden
 router.get('/ultimaorden',OrdenController.getultimaorden);
 
-// Obtener todas las categorías
-router.get('/categorias', CategoriaImageController.getCategorias);
-router.put('/categorias/:id', CategoriaImageController.updateCategoria);
 
 
 export default router;
