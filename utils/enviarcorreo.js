@@ -1,3 +1,4 @@
+// Importa las dependencias necesarias para manejar la configuración y el envío de correos electrónicos.
 import { Resend } from "resend";
 import { readFile } from "fs/promises";
 import path from "path";
@@ -6,16 +7,23 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Configuración para obtener la ruta del archivo actual y su directorio.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Inicializa el cliente de Resend con la clave API configurada.
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/**
+ * Envía un correo de confirmación al usuario que completó un formulario.
+ * Utiliza una plantilla HTML para personalizar el contenido del correo.
+ * @param {Object} datos - Datos del formulario enviados por el usuario.
+ */
 async function enviarCorreoConfirmacion(datos) {
   const templatePath = path.join(__dirname, "../templates/correo-confirmacion.html");
   let html = await readFile(templatePath, "utf-8");
 
-  // Reemplazos dinámicos
+  // Reemplazos dinámicos en la plantilla HTML.
   html = html
     .replace(/{{nombre}}/g, datos.nombre || "-")
     .replace(/{{apellido}}/g, datos.apellido || "-")
@@ -31,6 +39,7 @@ async function enviarCorreoConfirmacion(datos) {
 
   const from = `"Pilotos FAH" <${process.env.EMAIL_FROM}>`;
 
+  // Enviar el correo utilizando Resend.
   await resend.emails.send({
     from,
     to: datos.email,
