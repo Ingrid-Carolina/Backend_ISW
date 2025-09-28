@@ -16,6 +16,7 @@ import OrdenController from '../controllers/ordenController.js';
 import DetalleOrdenController from '../controllers/detalleOrdenController.js';
 import AliadosImageController from '../controllers/TestimoniosImageController.js';
 import TestimoniosImageController from '../controllers/TestimoniosImageController.js';
+import testimoniosController from '../controllers/testimoniosController.js';
 import ContactoImageController from '../controllers/ContactoImageController.js';
 import CategoriaImageController from '../controllers/CategoriaImageController.js';
 import NuestroEquipoImageController from '../controllers/NuestroEquipoImageController.js';
@@ -62,6 +63,12 @@ router.get('/obtenertestimonios',AuthController.obtenerTestimonios);
 router.post('/registrartestimonio',requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
 router.put('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
 router.delete('/testimonio/:id',requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
+
+// Agregar al router.js junto con las otras rutas
+router.get('/testimoniossite', testimoniosController.obtener);
+router.put('/testimoniossite', requireAuth, requireRole('admin'), testimoniosController.actualizar);
+router.get('/testimoniosimages', TestimoniosImageController.getImages);
+router.put('/testimoniosimages', requireAuth, requireRole('admin'), TestimoniosImageController.updateImage);
 
 //envivo
 router.post('/registrarenvivo', requireAuth, requireRole('admin'), AuthController.registrarenvivo);
