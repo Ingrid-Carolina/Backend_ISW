@@ -30,7 +30,7 @@ import enviarCorreoCompra from "../utils/compracorreo.js";
 
 class OrdenController {
   // Obtener todas las órdenes (con total calculado)
-  static async getProductosbyID(req, res) {
+  static async getProductosbyID(req, res) { //Agarro la descripcion de los productos por cada idorden dinamicamente en el frontend
     const { idorden } = req.params;
     try {
       const productos_comprados = await sql`
@@ -39,6 +39,7 @@ class OrdenController {
         d.cantidad,
         d.precio_unitario,
         d.cantidad * d.precio_unitario AS total
+        d.detalle_camisa
       FROM 
         ordenes o
       JOIN 
@@ -57,7 +58,7 @@ class OrdenController {
     }
   }
 
-  static async getOrdenes(req, res) {
+  static async getOrdenes(req, res) { //agarro el dato general de la orden(Ordenes+Usuario)
     try {
       const ordenes = await sql`
       SELECT o.idorden, o.fecha, o.estado, u.nombre AS nombre_usuario, u.email
@@ -113,8 +114,8 @@ class OrdenController {
       // Insertar cada producto individualmente en la tabla DETALLEORDENR
       for (const item of cartItems) {
         await sql`
-        INSERT INTO DETALLEORDEN (orden_id, producto_id, cantidad, precio_unitario)
-        VALUES (${orden_id}, ${item.idproducto}, ${item.cantidad}, ${item.precio_unitario})
+        INSERT INTO DETALLEORDEN (orden_id, producto_id, cantidad, precio_unitario, detalle_camisa)
+        VALUES (${orden_id}, ${item.idproducto}, ${item.cantidad}, ${item.precio_unitario}, ${item.detalle_camisa})
       `;
       }
 
