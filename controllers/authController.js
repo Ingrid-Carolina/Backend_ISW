@@ -1,3 +1,26 @@
+/**
+ *
+ * AuthController.js
+ *
+ * Este archivo define la clase `AuthController`, que gestiona la autenticación de usuarios y operaciones relacionadas.
+ * Integra Firebase Authentication y PostgreSQL para la gestión de usuarios, e incluye métodos para registro,
+ * inicio de sesión, cierre de sesión, restablecimiento de contraseña, gestión de perfil y más. Además, maneja
+ * el envío de formularios y la verificación de CAPTCHA.
+ *
+ * Métodos:
+ * 1. `registrarUsuario`: Registra a un nuevo usuario validando el correo y la contraseña, creando un usuario en Firebase y almacenando los datos en PostgreSQL.
+ * 2. `loginUsuario`: Autentica a un usuario existente, obtiene su rol desde PostgreSQL y establece una cookie segura con el token de autenticación.
+ * 3. `signOutUsuario`: Cierra la sesión del usuario actual y limpia la cookie de autenticación.
+ * 4. `registrarformulario`: Gestiona el envío de un formulario de contacto y envía un correo de confirmación.
+ * 5. `ResetPassword`: Envía un correo para restablecer la contraseña del usuario.
+ * 6. `captcha`: Verifica un token de CAPTCHA usando la API reCAPTCHA de Google.
+ * 7. `realizarcompra`: Gestiona compras de productos insertando los detalles en la base de datos y actualizando las cantidades.
+ * 8. `editarPerfil`: Actualiza la información del perfil del usuario, incluyendo nombre, descripción y avatar.
+ * 9. `obtenerPerfil`: Recupera los detalles del perfil del usuario, incluyendo nombre, descripción, avatar y rol.
+ * 10. `obtenerDatosUsuario`: Obtiene detalles del usuario como nombre, correo y contraseña desde la base de datos.
+ * 11. `eliminarUsuarioAutenticado`: Elimina al usuario autenticado de Firebase y PostgreSQL.
+ * 12. `registrarTestimonio`: Registra un testimonio de usuario.
+ */
 import axios from "axios";
 import auth from "../config/firebase.js";
 import { sql } from "../config/postgre.js";
@@ -420,8 +443,9 @@ class AuthController {
   static async obtenerTestimonios(req, res) {
     try {
       const testimonios = await sql`
-      SELECT id_testimonio, nombre, contenido, imagen
-      FROM Testimonios
+        SELECT id_testimonio, nombre, contenido, imagen, is_featured
+        FROM Testimonios
+        ORDER BY is_featured DESC, id_testimonio DESC
     `;
       console.log("Testimonios obtenidos!");
       res.status(200).json(testimonios); //los guarda en un json
@@ -480,6 +504,64 @@ class AuthController {
       });
     }
   }
+
+  // Dentro de tu controlador TestimoniosController
+
+  // PUT /auth/testimonios/destacado  { id: number | null }
+  static async destacarTestimonio(req, res) {
+    const { id } = req.body; // null => quitar destacado
+
+    try {
+      await sql.begin(async (tx) => {
+        // Limpia el destacado actual
+        await tx`UPDATE Testimonios SET is_featured = false WHERE is_featured = true`;
+
+        if (id !== null) {
+          // Verifica que exista
+          const existe = await tx`
+          SELECT 1 FROM Testimonios WHERE id_testimonio = ${id} LIMIT 1
+        `;
+          if (existe.length === 0) {
+            throw new Error("El testimonio no existe.");
+          }
+
+          // Marca el nuevo
+          await tx`
+          UPDATE Testimonios
+          SET is_featured = true
+          WHERE id_testimonio = ${id}
+        `;
+        }
+      });
+
+      res.status(200).send({
+        mensaje: id === null ? "Destacado quitado." : "Testimonio marcado como destacado.",
+        featured_id: id,
+      });
+    } catch (error) {
+      const code = /no existe/i.test(error.message) ? 404 : 500;
+      res.status(code).send({
+        mensaje: "Error al actualizar el destacado",
+        detalle: error.message,
+      });
+    }
+  }
+
+  // GET /auth/testimonios/destacado  -> { featured_id: number | null }
+  static async obtenerDestacado(req, res) {
+    try {
+      const row = await sql`
+      SELECT id_testimonio AS featured_id
+      FROM Testimonios
+      WHERE is_featured = true
+      LIMIT 1
+    `;
+      res.status(200).json({ featured_id: row[0]?.featured_id ?? null });
+    } catch (error) {
+      res.status(500).send({ mensaje: "Error al obtener destacado", detalle: error.message });
+    }
+  }
+
 
   static async registrarenvivo(req, res) {
     const {

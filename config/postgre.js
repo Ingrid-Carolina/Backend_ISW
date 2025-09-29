@@ -2,43 +2,24 @@ import dotenv from "dotenv";
 dotenv.config();
 import postgres from "postgres";
 
+// URL de conexión a la base de datos PostgreSQL desde el archivo .env
 const db_url = process.env.POSTGRESQL_URL;
 
-const sql = postgres(db_url); // Define the connection once
+// Se crea una instancia de conexión reutilizable a la base de datos
+const sql = postgres(db_url); // Define la conexión una vez
 
+// Función para probar la conexión y mostrar la versión de PostgreSQL
 const dbConnect = async () => {
   try {
+    // Ejecuta una consulta SQL simple para verificar la conexión
     const version = await sql`SELECT version()`;
     console.log(version);
     console.log("La Base de datos se ha conectado correctamente");
-
-    /* await sql`
-             CREATE TABLE IF NOT EXISTS Usuarios (
-                 id VARCHAR(100) PRIMARY KEY,
-                 nombre VARCHAR(100) NOT NULL,
-                 email VARCHAR(100) UNIQUE NOT NULL,
-                 password VARCHAR(100) NOT NULL,
-                 fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                 rol VARCHAR(50) NOT NULL DEFAULT 'cliente'
-             )
-         `;
- 
-        
-         const userdata = {
-             id: 'jaja',
-             nombre: 'Nahim',
-             email: 'nahimandres1945@example.com',
-             password: 'hola'
-         };
- 
-         const inserted = await sql`
-             INSERT INTO Usuarios ${sql(userdata)}
-             RETURNING *
-         `;
-         console.log('Usuario insertado:', inserted);*/
   } catch (err) {
+    // Muestra el error si no logra conectar
     console.log("Error en la base de datos:", err);
   }
 };
 
+// Se exporta la función de conexión y el cliente SQL
 export { dbConnect, sql };

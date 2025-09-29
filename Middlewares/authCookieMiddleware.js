@@ -1,3 +1,23 @@
+
+/**
+ * Auth middlewares (requireAuth / requireRole)
+ *
+ * Middlewares de autenticación y autorización basados en Firebase y PostgreSQL.
+ *
+ * - requireAuth:
+ *   * Lee el token desde la cookie `token`.
+ *   * Verifica el ID token con Firebase Admin.
+ *   * Pone en `req` los datos de usuario (uid, email) para uso posterior.
+ *
+ * - requireRole(...rolesPermitidos):
+ *   * Requiere autenticación previa (email poblado por requireAuth).
+ *   * Consulta el `rol` en la tabla `Usuarios` y valida contra la lista permitida.
+ *   * Responde 403 si el rol no está autorizado.
+ *
+ * Notas:
+ * - Devuelve 401 si falta token o es inválido/expirado.
+ * - Manejo de errores verboso en consola y respuestas JSON coherentes.
+ */
 import admin from '../config/firebase-admin.js';
 import { sql } from '../config/postgre.js';
 

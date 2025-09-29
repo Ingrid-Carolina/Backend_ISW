@@ -1,3 +1,27 @@
+/**
+ * compracorreo.js — Envío de correos de compra (Resend)
+ *
+ * Envía:
+ *  1) Correo interno a administradores con el detalle de la orden (plantilla `correo-orden.html`).
+ *  2) Correo de confirmación al cliente con desglose de compra (plantilla `correo-compra-cliente.html`).
+ *
+ * Características:
+ * - Usa la API de Resend y plantillas HTML basadas en archivos estáticos.
+ * - Construcción de tabla de productos (cantidades/precios/subtotales).
+ * - Cálculo de subtotal, impuesto e importe total para el cliente.
+ * - Soporta múltiples destinatarios admin (separados por coma o punto y coma).
+ *
+ * Variables de entorno esperadas:
+ * - RESEND_API_KEY      : API key de Resend.
+ * - EMAIL_FROM          : Remitente (correo).
+ * - EMAIL_FROM_NAME     : Nombre visible del remitente (opcional).
+ * - EMAIL_REPLY_TO      : Dirección para respuestas (opcional).
+ * - EMAIL_TO            : Lista de admin(s) (coma/;).
+ *
+ * Notas:
+ * - Si falta RESEND_API_KEY, se registra en consola y no se intenta enviar.
+ * - Los placeholders {{...}} en las plantillas se reemplazan dinámicamente.
+ */
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import { readFile } from 'fs/promises';

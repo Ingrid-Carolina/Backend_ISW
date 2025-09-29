@@ -1,3 +1,20 @@
+/**
+ * VoluntariadoImageController.js
+ *
+ * Controlador para la gestión de imágenes de la sección Voluntariado.
+ * Permite obtener la lista, actualizar (upsert por `type`) y subir imágenes.
+ *
+ * Funcionalidades:
+ * - getImages: Lista las imágenes registradas en `voluntariado_images`.
+ * - updateImage: Inserta/actualiza la URL de imagen por `type` (ON CONFLICT).
+ * - uploadImage: Sube archivo usando Multer (diskStorage) y retorna URL accesible.
+ *
+ * Notas:
+ * - El almacenamiento local se realiza en la carpeta `uploads/`.
+ * - Validación mínima de `type` y `url` en el update.
+ * - Manejo de errores con códigos HTTP adecuados.
+ */
+
 import { sql } from '../config/postgre.js';
 import multer from 'multer';
 import path from 'path';

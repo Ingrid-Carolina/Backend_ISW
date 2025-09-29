@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
-import { initializeApp } from "firebase/app"; //inicializamos sesion en firebase(para login, singin o sign up)
-import { getAuth } from "firebase/auth";
-import {getStorage} from "firebase/storage";
+import { initializeApp } from "firebase/app"; // Inicializa Firebase en el frontend (login, signup, etc.)
+import { getAuth } from "firebase/auth"; // Servicio de autenticación
+import { getStorage } from "firebase/storage"; // Servicio de almacenamiento
 
 dotenv.config();
 
+// Configuración de Firebase, todos los valores vienen del archivo .env
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -14,18 +15,14 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
+// Inicializa la app de Firebase con la configuración dada
 const app = initializeApp(firebaseConfig);
+
+// Exporta el servicio de autenticación
 export const auth = getAuth(app);
 
+// Exporta el servicio de almacenamiento
 export const storage = getStorage(app);
 
+// Exporta auth como valor por defecto
 export default auth;
-
-/*import admin from 'firebase-admin'
-import serviceAccount from './firebase.json' assert {type: 'json'};
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
-
-export default admin;*/

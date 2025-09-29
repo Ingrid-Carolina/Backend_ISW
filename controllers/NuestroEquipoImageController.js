@@ -1,3 +1,19 @@
+/**
+ * NuestroEquipoImageController.js
+ *
+ * Controlador para la gestión de imágenes relacionadas con la sección "Nuestro Equipo".
+ * Permite administrar las imágenes almacenadas en la base de datos y actualizarlas
+ * dinámicamente según su tipo.
+ *
+ * Funcionalidades principales:
+ * - Obtener todas las imágenes asociadas a "Nuestro Equipo".
+ * - Actualizar o insertar (upsert) una imagen específica validando su tipo.
+ *
+ * Este controlador garantiza que las imágenes de la sección de equipo
+ * puedan ser modificadas sin alterar otras secciones del sitio.
+ */
+
+
 // controllers/NuestroEquipoImageController.js
 import { sql } from "../config/postgre.js";
 

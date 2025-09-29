@@ -1,4 +1,21 @@
-// controllers/detalleOrdenController.js
+/**
+ * detalleOrdenController.js
+ *
+ * Controlador para la gestión de los detalles de órdenes.
+ * Se conecta a la base de datos PostgreSQL y permite realizar operaciones CRUD
+ * sobre la tabla `detalleorden`.
+ *
+ * Funcionalidades principales:
+ * - Obtener todos los detalles de las órdenes.
+ * - Obtener un detalle específico por su ID.
+ * - Agregar un nuevo detalle a una orden (incluye cantidad y precio unitario).
+ * - Actualizar un detalle existente.
+ * - Eliminar un detalle por ID.
+ *
+ * Este controlador asegura la gestión completa de los ítems que conforman
+ * cada orden en el sistema.
+ */
+
 import { sql } from "../config/postgre.js";
 
 class DetalleOrdenController {

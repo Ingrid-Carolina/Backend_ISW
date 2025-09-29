@@ -1,3 +1,24 @@
+/**
+ * ordenController.js
+ *
+ * Controlador para la gestión de órdenes y sus detalles en la tienda.
+ * Expone endpoints para consultar órdenes (y sus productos), crear nuevas órdenes,
+ * actualizar el estado, eliminar y utilidades relacionadas (última orden, etc.).
+ *
+ * Funcionalidades principales:
+ * - getProductosbyID: Lista los productos de una orden con totales calculados.
+ * - getOrdenes / getOrdenById: Consulta de órdenes (resumen y por ID con total).
+ * - addOrden: Crea una orden a partir del carrito e inserta su detalle.
+ * - actualizarOrden / setestado: Cambia el estado de una orden existente.
+ * - eliminarOrden: Elimina la orden por ID.
+ * - getultimaorden: Obtiene el identificador más reciente de orden.
+ *
+ * Notas:
+ * - Integra PostgreSQL para persistencia.
+ * - Envía notificación por correo al cliente tras crear la orden.
+ * - Valida entradas mínimas del carrito antes de persistir.
+ */
+
 // controllers/ordenController.js
 import axios from "axios";
 import auth from "../config/firebase.js";

@@ -1,3 +1,19 @@
+/**
+ * FileUploadController.js
+ *
+ * Controlador para la subida de archivos de usuario al bucket de Supabase Storage.
+ * Incluye validación de tipo de archivo y sanitización del nombre antes de guardarlo.
+ *
+ * Funcionalidades principales:
+ * - Subir archivos (solo imágenes en formatos JPEG, PNG, WEBP y AVIF).
+ * - Asociar archivos con un usuario autenticado (por UID).
+ * - Generar rutas y URLs públicas seguras para acceder a los archivos.
+ *
+ * Este controlador es la base para el manejo de recursos multimedia
+ * asociados a usuarios dentro de la aplicación.
+ */
+
+
 import { supabase, BUCKET } from "../config/supabase.js";
 
 function sanitizeName(name) {

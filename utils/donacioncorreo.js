@@ -1,3 +1,25 @@
+/**
+ * donacioncorreo.js — Envío de correos por donaciones (Resend)
+ *
+ * Envía:
+ *  1) Correo interno al buzón del club con el resumen de la solicitud.
+ *  2) Correo de agradecimiento al donante (si proporcionó correo), basado en la plantilla
+ *     `correo-donacion.html` con reemplazos dinámicos.
+ *
+ * Características:
+ * - Plantilla HTML para el donante + versión de texto plano fallback.
+ * - Resumen claro para administradores (HTML + texto).
+ * - Campos admitidos: nombre, correo, teléfono, día, horario, descripción.
+ *
+ * Variables de entorno:
+ * - RESEND_API_KEY : API key de Resend.
+ * - EMAIL_FROM     : Remitente (correo).
+ * - EMAIL_TO       : Correo del buzón interno (si no está, usa EMAIL_FROM).
+ *
+ * Notas:
+ * - Usa `Resend.emails.send()` para ambos correos.
+ * - Plantillas externas leídas desde `/templates`.
+ */
 import { Resend } from "resend";
 import dotenv from "dotenv";
 import { readFile } from "fs/promises";

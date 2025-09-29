@@ -1,3 +1,21 @@
+/**
+ * TestimoniosImageController.js
+ *
+ * Controlador para la gestión de imágenes usadas en la sección de Testimonios.
+ * Permite listar, actualizar (upsert por `type`) y subir imágenes al servidor.
+ *
+ * Funcionalidades:
+ * - getImages: Obtiene todas las imágenes desde la tabla `test_images`.
+ * - updateImage: Inserta/actualiza por `type` la URL de una imagen (ON CONFLICT).
+ * - uploadImage: Recibe un archivo (Multer + diskStorage) y devuelve su URL pública local.
+ *
+ * Notas:
+ * - Usa PostgreSQL para persistir `type` y `url`.
+ * - Multer guarda físicamente en `uploads/` y genera nombres únicos.
+ * - Respuestas JSON claras y manejo de errores consistente.
+ */
+
+
 // backend/controllers/TestimoniosImageController.js
 import { sql } from "../config/postgre.js";
 import multer from "multer";

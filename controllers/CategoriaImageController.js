@@ -1,3 +1,20 @@
+/**
+ * CategoriasImagesController.js
+ *
+ * Controlador para la gestión de imágenes y datos asociados a categorías.
+ * Maneja la subida de archivos al servidor mediante Multer, así como las operaciones
+ * de CRUD en la tabla `categorias_images` de PostgreSQL.
+ *
+ * Funcionalidades principales:
+ * - Subir imágenes al servidor (carpeta `/uploads`).
+ * - Obtener todas las imágenes y categorías con sus atributos.
+ * - Actualizar la URL de una imagen según el tipo.
+ * - Editar los datos de una categoría existente (texto, tipo, descripción, imagen).
+ *
+ * Este controlador conecta la capa de almacenamiento de archivos con la base de datos,
+ * permitiendo tanto la persistencia de las imágenes como su información complementaria.
+ */
+
 import { sql } from '../config/postgre.js';
 import multer from 'multer';
 import path from 'path';

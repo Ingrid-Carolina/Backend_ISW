@@ -1,3 +1,22 @@
+/**
+ * homeTextosController.js
+ *
+ * Controlador encargado de la gestión de textos dinámicos en la página de inicio (Home).
+ * Permite administrar títulos, subtítulos y descripciones que aparecen en distintas secciones
+ * del frontend, asegurando que solo se manipulen claves predefinidas.
+ *
+ * Funcionalidades principales:
+ * - Obtener todos los textos disponibles en formato clave-valor.
+ * - Obtener un texto específico según su clave.
+ * - Insertar o actualizar (upsert) un texto individual.
+ * - Insertar o actualizar múltiples textos en bloque (bulk).
+ *
+ * Incluye validaciones de claves permitidas y límites de longitud para garantizar
+ * la consistencia del contenido mostrado en el sitio.
+ */
+
+
+
 // controllers/homeTextosController.js
 import { sql } from "../config/postgre.js";
 

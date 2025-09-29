@@ -1,3 +1,21 @@
+/**
+ * productoController.js
+ *
+ * Controlador CRUD para productos de la tienda, con soporte de subida de imágenes
+ * a Supabase Storage. Permite listar, obtener por ID, crear, actualizar y eliminar
+ * productos, gestionando además la URL de imagen asociada.
+ *
+ * Funcionalidades principales:
+ * - getProductos / getProductoById: Lectura de productos.
+ * - addProducto: Alta de producto (JSON o multipart/form-data) con subida opcional a Supabase.
+ * - actualizarProducto: Actualización parcial, sustituyendo imagen y limpiando la anterior si aplica.
+ * - eliminarProducto: Borra el registro y elimina la imagen del bucket si existe.
+ *
+ * Notas:
+ * - Incluye helpers para normalizar valores (nullables y números).
+ * - Maneja validaciones mínimas (nombre y precio) y errores de BD.
+ */
+
 // controllers/productoController.js
 import { sql } from "../config/postgre.js";
 import { uploadToSupabase, deleteFromSupabaseByUrl } from "./_uploadHelpers.js";
