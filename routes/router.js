@@ -208,7 +208,8 @@ router.delete('/eliminardetalle/:id', requireAuth, requireRole('admin'), Detalle
 router.post("/voluntariado/upload", VoluntariadoImageController.uploadImage);
 router.put("/voluntariado/images", VoluntariadoImageController.updateImage);
 router.get('/voluntariado/getimages', VoluntariadoImageController.getImages);
-
+router.put('/voluntariado/texto', requireAuth, requireRole("admin"), VoluntariadoImageController.upsert);
+router.get('/voluntariado/texto', VoluntariadoImageController.obtenerTodos);
 
 
 //contacto

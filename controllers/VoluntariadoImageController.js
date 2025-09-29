@@ -32,6 +32,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage }).single('file');
 
+const CLAVES_PERMITIDAS = [
+  "header_l1",
+  "header_l2",
+  "slogan",
+  "contenido_titulo",
+  "contenido_subtitulo",
+  "descripcion",
+];
+
+const MAX_LEN = 2000;
+
+function isValidClave(clave) {
+  return typeof clave === "string" && CLAVES_PERMITIDAS.includes(clave);
+}
+
+
 class VoluntariadoImageController {
   // Obtener todas las imágenes
   static async getImages(req, res) {
@@ -87,6 +103,80 @@ class VoluntariadoImageController {
         url: imageUrl
       });
     });
+  }
+
+  //insertar a la tabla Voluntariado_textos
+   static async upsert(req, res) {
+      try {
+        let { clave, valor } = req.body || {};
+  
+        if (!isValidClave(clave)) {
+          return res.status(400).json({
+            success: false,
+            mensaje: `Clave inválida. Válidas: ${CLAVES_PERMITIDAS.join(", ")}`,
+          });
+        }
+        if (typeof valor !== "string") {
+          return res.status(400).json({
+            success: false,
+            mensaje: "El valor debe ser una cadena",
+          });
+        }
+        if (valor.length > MAX_LEN) {
+          return res.status(400).json({
+            success: false,
+            mensaje: `El texto excede el máximo de ${MAX_LEN} caracteres`,
+          });
+        }
+  
+        const rows = await sql`
+          INSERT INTO voluntariado_textos (clave, valor)
+          VALUES (${clave}, ${valor.trim()})
+          ON CONFLICT (clave)
+          DO UPDATE SET
+            valor = EXCLUDED.valor
+          RETURNING id_texto, clave, valor
+        `;
+  
+        return res.json({
+          success: true,
+          mensaje: "Texto guardado correctamente",
+          data: rows[0]
+        });
+      } catch (error) {
+        console.error("❌ [VoluntariadoTextos] upsert:", error);
+        return res.status(500).json({
+          success: false,
+          mensaje: "Error interno al guardar el texto",
+        });
+      }
+    }
+
+
+    static async obtenerTodos(req, res) {
+    try {
+      const rows = await sql`
+        SELECT clave, valor
+        FROM voluntariado_textos
+        ORDER BY clave ASC
+      `;
+
+      const data = {};
+      for (const r of rows) data[r.clave] = r.valor;
+
+      return res.json({
+        success: true,
+        data,
+        count: rows.length,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("❌ [VoluntariadoTextos] obtenerTodos:", error);
+      return res.status(500).json({
+        success: false,
+        mensaje: "Error interno al cargar textos de Home",
+      });
+    }
   }
 }
 

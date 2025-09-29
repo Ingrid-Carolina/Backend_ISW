@@ -54,13 +54,14 @@ async function renderAdminTemplate(data) {
       <table role="presentation" cellspacing="0" cellpadding="6" border="1" width="100%" 
         style="border-collapse:collapse;border:1px solid #ddd;font-size:14px;">
         <thead style="background:#f4f6ff;color:#0c005a;">
-          <tr><th align="left">Producto</th><th align="center">Cant.</th>
+          <tr><th align="left">Producto</th> <th align="center">Talla</th><th align="center">Cant.</th>
               <th align="right">P. Unitario</th><th align="right">Subtotal</th></tr>
         </thead>
         <tbody>
           ${data.cartItems.map(it => `
             <tr>
               <td>${safe(it.nombre_producto)}</td>
+               <td align="center">${it.talla || '-'}</td>
               <td align="center">${safe(it.cantidad)}</td>
               <td align="right">L. ${Number(it.precio_unitario).toFixed(2)}</td>
               <td align="right">L. ${(Number(it.precio_unitario)*Number(it.cantidad)).toFixed(2)}</td>
@@ -103,6 +104,7 @@ async function renderClienteTemplate(data) {
           ${data.cartItems.map(it => `
             <tr>
               <td>${it.nombre_producto}</td>
+               <td align="center">${it.talla || '-'}</td>
               <td align="center">${it.cantidad}</td>
               <td align="right">L. ${Number(it.precio_unitario).toFixed(2)}</td>
               <td align="right">L. ${(Number(it.precio_unitario)*Number(it.cantidad)).toFixed(2)}</td>
