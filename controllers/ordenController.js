@@ -38,7 +38,7 @@ class OrdenController {
         p.nombre_producto,
         d.cantidad,
         d.precio_unitario,
-        d.cantidad * d.precio_unitario AS total
+        d.cantidad * d.precio_unitario AS total,
         d.detalle_camisa
       FROM 
         ordenes o
