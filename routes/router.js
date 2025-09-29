@@ -21,6 +21,7 @@ import ContactoImageController from '../controllers/ContactoImageController.js';
 import CategoriaImageController from '../controllers/CategoriaImageController.js';
 import NuestroEquipoImageController from '../controllers/NuestroEquipoImageController.js';
 import HomeTextController from '../controllers/HomeTextController.js';
+import CategoriasSiteController from '../controllers/categoriasSiteController.js';
 
 const router = express.Router();
 
@@ -210,5 +211,11 @@ router.put("/home/textos/bulk", requireAuth, requireRole("admin"), HomeTextContr
 router.get('/categorias', CategoriaImageController.getCategorias);
 router.put('/categorias/:id', CategoriaImageController.updateCategoria);
 
-
+// Rutas para manejar el header y carrusel en categorias_site
+router.get('/categorias/site', CategoriasSiteController.getHeader);
+router.put('/categorias/site/header', requireAuth, requireRole('admin'), CategoriasSiteController.updateHeader);
+router.get('/categorias/carrusel', CategoriasSiteController.getCarrusel);
+router.put('/categorias/carrusel', requireAuth, requireRole('admin'), CategoriasSiteController.updateCarrusel);
+router.get('/categorias/site/all', CategoriasSiteController.getAll);
+router.put('/categorias/site/carrusel', requireAuth, requireRole('admin'), CategoriasSiteController.updateCarrusel);
 export default router;
