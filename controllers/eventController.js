@@ -1,4 +1,20 @@
-// controllers/eventController.js
+/**
+ * eventController.js
+ *
+ * Controlador para la gestión de eventos.
+ * Combina PostgreSQL y Supabase Storage para manejar tanto los datos como
+ * las imágenes asociadas a los eventos.
+ *
+ * Funcionalidades principales:
+ * - Registrar un evento (acepta multipart/form-data y JSON).
+ * - Obtener la lista de eventos próximos desde la base de datos.
+ * - Actualizar un evento existente (con opción de reemplazo de imagen).
+ * - Eliminar un evento, incluyendo la eliminación de la imagen en Supabase.
+ *
+ * Este controlador facilita la creación, modificación y eliminación de eventos,
+ * garantizando integridad de datos y recursos multimedia.
+ */
+
 import { sql } from "../config/postgre.js";
 import { uploadToSupabase, deleteFromSupabaseByUrl } from "./_uploadHelpers.js";
 

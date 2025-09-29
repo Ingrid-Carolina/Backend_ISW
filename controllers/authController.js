@@ -1,3 +1,26 @@
+/**
+ *
+ * AuthController.js
+ *
+ * Este archivo define la clase `AuthController`, que gestiona la autenticación de usuarios y operaciones relacionadas.
+ * Integra Firebase Authentication y PostgreSQL para la gestión de usuarios, e incluye métodos para registro,
+ * inicio de sesión, cierre de sesión, restablecimiento de contraseña, gestión de perfil y más. Además, maneja
+ * el envío de formularios y la verificación de CAPTCHA.
+ *
+ * Métodos:
+ * 1. `registrarUsuario`: Registra a un nuevo usuario validando el correo y la contraseña, creando un usuario en Firebase y almacenando los datos en PostgreSQL.
+ * 2. `loginUsuario`: Autentica a un usuario existente, obtiene su rol desde PostgreSQL y establece una cookie segura con el token de autenticación.
+ * 3. `signOutUsuario`: Cierra la sesión del usuario actual y limpia la cookie de autenticación.
+ * 4. `registrarformulario`: Gestiona el envío de un formulario de contacto y envía un correo de confirmación.
+ * 5. `ResetPassword`: Envía un correo para restablecer la contraseña del usuario.
+ * 6. `captcha`: Verifica un token de CAPTCHA usando la API reCAPTCHA de Google.
+ * 7. `realizarcompra`: Gestiona compras de productos insertando los detalles en la base de datos y actualizando las cantidades.
+ * 8. `editarPerfil`: Actualiza la información del perfil del usuario, incluyendo nombre, descripción y avatar.
+ * 9. `obtenerPerfil`: Recupera los detalles del perfil del usuario, incluyendo nombre, descripción, avatar y rol.
+ * 10. `obtenerDatosUsuario`: Obtiene detalles del usuario como nombre, correo y contraseña desde la base de datos.
+ * 11. `eliminarUsuarioAutenticado`: Elimina al usuario autenticado de Firebase y PostgreSQL.
+ * 12. `registrarTestimonio`: Registra un testimonio de usuario.
+ */
 import axios from "axios";
 import auth from "../config/firebase.js";
 import { sql } from "../config/postgre.js";

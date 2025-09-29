@@ -1,3 +1,18 @@
+/**
+ * JugadorController.js
+ *
+ * Controlador para la gestión de jugadores.
+ * Facilita la consulta de los datos de los jugadores almacenados en la base de datos,
+ * principalmente para fines estadísticos o de visualización en el frontend.
+ *
+ * Funcionalidades principales:
+ * - Obtener la lista completa de jugadores desde la tabla `jugadores`.
+ *
+ * Este controlador se centra únicamente en la lectura de datos y sirve como base
+ * para mostrar información relacionada con jugadores en la aplicación.
+ */
+
+
 import { sql } from "../config/postgre.js";
 
 class JugadorController {

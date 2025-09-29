@@ -1,3 +1,20 @@
+/**
+ * contactoController.js
+ *
+ * Controlador para la gestión de la información de contacto de la organización.
+ * Se encarga de leer y actualizar los textos y campos de contacto almacenados en la
+ * tabla `contacto_site` de PostgreSQL.
+ *
+ * Funcionalidades principales:
+ * - Obtener la información de contacto (con valores por defecto si no hay registros).
+ * - Actualizar o insertar (upsert) la información de contacto.
+ *
+ * Los campos incluyen nombre de la organización, etiquetas y valores de teléfono y correo,
+ * textos introductorios y CTA, así como el título del encabezado.
+ * Se asegura de que siempre exista un único registro gestionado (id = 1).
+ */
+
+
 import { sql } from "../config/postgre.js";
 
 export default class contactoController {

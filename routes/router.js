@@ -1,3 +1,33 @@
+/**
+ * Rutas API (Express Router)
+ *
+ * Define todas las rutas HTTP del backend y las agrupa por módulo/funcionalidad.
+ * Aplica middlewares de autenticación/autorización y validaciones antes de
+ * delegar en los controladores correspondientes.
+ *
+ * Incluye:
+ * - Autenticación y perfil (signup, signin, signout, reset, captcha, perfil, UID).
+ * - Contacto (formulario, textos e imágenes).
+ * - Eventos (CRUD con subida de imágenes).
+ * - Noticias (CRUD).
+ * - Testimonios (CRUD + textos/imágenes del sitio).
+ * - NuestroEquipo (textos, junta directiva e imágenes).
+ * - Tienda (productos, textos, órdenes y detalle de órdenes).
+ * - Donaciones (productos y registro de donaciones).
+ * - Home (textos e imágenes).
+ * - Categorías (imágenes y CRUD de categorías).
+ * - Jugadores (listado para estadísticas).
+ *
+ * Middlewares:
+ * - requireAuth: exige sesión válida (Firebase ID token en cookie).
+ * - requireRole: restringe acceso por rol (e.g., 'admin').
+ * - Validadores (express-validator) para inputs críticos.
+ * - uploadImages: carga de archivos vía Multer.
+ *
+ * Respuestas:
+ * - JSON consistente con códigos HTTP adecuados.
+ * - Manejo de errores básico por try/catch en cada controlador.
+ */
 import express from 'express'
 import { ContactFormValidator, CreateUserValidator, SignInValidator, EditProfileValidator, DonacionesFormValidator } from '../Middlewares/ValidatorMiddleware.js';
 import verificarToken from '../Middlewares/ValidatorMiddleware.js';

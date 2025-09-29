@@ -2,11 +2,14 @@ import admin from "firebase-admin";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Inicializa Firebase Admin SDK usando las credenciales del archivo .env
 admin.initializeApp({
   credential: admin.credential.cert({
+    // Cada uno de estos valores proviene de las variables de entorno configuradas
     type: process.env.FIREBASE_TYPE,
     project_id: process.env.FIREBASE_PROJECT_ID,
     private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    // Se reemplazan los saltos de línea (\n) para que la clave privada tenga el formato correcto
     private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     client_email: process.env.FIREBASE_CLIENT_EMAIL,
     client_id: process.env.FIREBASE_CLIENT_ID,
@@ -18,4 +21,5 @@ admin.initializeApp({
   })
 });
 
+// Se exporta la instancia de Firebase Admin para ser usada en otras partes del proyecto
 export default admin;

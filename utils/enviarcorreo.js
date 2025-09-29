@@ -1,3 +1,22 @@
+/**
+ * enviarcorreo.js — Confirmación de envío de formulario de contacto (Resend)
+ *
+ * Envía al usuario un correo de confirmación utilizando la plantilla
+ * `correo-confirmacion.html`, reemplazando los marcadores con los datos del formulario.
+ *
+ * Reemplazos dinámicos:
+ * - nombre, apellido, correo, teléfono, dirección, propósito (array), mensaje.
+ * - enlaces de contacto (home, email, teléfono, sitio).
+ *
+ * Variables de entorno:
+ * - RESEND_API_KEY : API key de Resend.
+ * - EMAIL_FROM     : Remitente (correo).
+ *
+ * Notas:
+ * - Si el usuario incluye una lista de propósitos, se une por coma.
+ * - Incluye texto alternativo simple (subject y text).
+ * - Registra en consola el destinatario al finalizar.
+ */
 import { Resend } from "resend";
 import { readFile } from "fs/promises";
 import path from "path";

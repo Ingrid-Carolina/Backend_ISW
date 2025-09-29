@@ -1,3 +1,19 @@
+/**
+ * testimoniosController.js
+ *
+ * Controlador para la configuración de la vista de testimonios del sitio.
+ * Gestiona información básica como el título del encabezado y facilita su
+ * actualización mediante operación upsert.
+ *
+ * Funcionalidades principales:
+ * - obtener: Devuelve la configuración actual (o valores por defecto si no existe).
+ * - actualizar: Inserta/actualiza (upsert) el título del header y devuelve el nuevo estado.
+ *
+ * Notas:
+ * - Usa PostgreSQL para persistir la configuración.
+ * - Respuestas con mensajes claros y manejo de errores consistente.
+ */
+
 // backend/controllers/testimoniosController.js
 import { sql } from "../config/postgre.js";
 

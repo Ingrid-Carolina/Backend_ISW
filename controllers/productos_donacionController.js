@@ -1,3 +1,21 @@
+/**
+ * ProductosDonacionController.js
+ *
+ * Controlador para la sección de productos de donación y registro de donaciones.
+ * Permite administrar los ítems disponibles para donación y recibir solicitudes
+ * de donación enviando notificaciones por correo.
+ *
+ * Funcionalidades principales:
+ * - getProductos: Lista de productos de donación.
+ * - addProducto / updateProducto / deleteProducto: CRUD sobre productos de donación.
+ * - registrardonacion: Registra una donación en BD y envía correo de confirmación.
+ * - getDonaciones: Consulta las donaciones registradas.
+ *
+ * Notas:
+ * - Integra PostgreSQL para persistencia y módulo de correo para notificaciones.
+ * - Valida entradas mínimas y maneja errores de forma controlada.
+ */
+
 import { sql } from "../config/postgre.js";
 import enviarCorreoDonacion from "../utils/donacioncorreo.js";
 

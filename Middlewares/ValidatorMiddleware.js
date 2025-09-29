@@ -1,3 +1,29 @@
+/**
+ * Validadores y verificación de token (express-validator / Firebase)
+ *
+ * Conjunto de middlewares de validación para distintas rutas del proyecto y
+ * un verificador de token de Firebase extraído de la cookie `token`.
+ *
+ * Incluye:
+ * - CreateUserValidator: valida nombre, email y password para registro.
+ * - SignInValidator: valida credenciales de acceso.
+ * - RegistrarFormularioValidator: ejemplo básico (email y password requeridos).
+ * - ContactFormValidator: valida/sanitiza campos del formulario de contacto
+ *   (nombre, apellido, email restringido a dominios permitidos, teléfono, dirección,
+ *   mensaje y propósito como array con opciones válidas).
+ * - EditProfileValidator: valida nombre del perfil.
+ * - DonacionesFormValidator: valida/sanitiza datos para registrar donaciones
+ *   (nombre, correo con dominios permitidos, fecha YYYY-MM-DD año ≥ 2025, hora HH:MM, etc.).
+ *
+ * - verificarToken: middleware que verifica el ID token de Firebase en cookie,
+ *   popula `req.uid` y rechaza con 401 si no es válido.
+ *
+ * Notas:
+ * - Usa `validateResult` para centralizar la respuesta de errores de validación.
+ * - Sanitización con `trim()` y `escape()` donde aplica.
+ * - Respuestas con mensajes claros y códigos HTTP adecuados.
+ */
+
 import { check } from 'express-validator';
 import { param } from 'express-validator';
 import validateResult from '../utils/handleValidator.js';

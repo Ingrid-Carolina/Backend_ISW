@@ -1,4 +1,19 @@
-// backend/controllers/ContactoImageController.js
+/**
+ * ContactoImageController.js
+ *
+ * Controlador para la gestión de imágenes en la sección de contacto.
+ * Utiliza Multer para la subida de archivos y PostgreSQL para almacenar las URLs
+ * relacionadas en la tabla `contacto_images`.
+ *
+ * Funcionalidades principales:
+ * - Obtener las imágenes de contacto desde la base de datos.
+ * - Actualizar o insertar (upsert) la URL de una imagen según su tipo.
+ * - Subir archivos al servidor (carpeta `/uploads`) y devolver la URL accesible.
+ *
+ * Este controlador proporciona la base para mantener dinámicamente las imágenes
+ * visibles en la sección de contacto de la aplicación web.
+ */
+
 import { sql } from "../config/postgre.js";
 import multer from "multer";
 import path from "path";

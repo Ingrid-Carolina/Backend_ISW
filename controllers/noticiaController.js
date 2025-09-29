@@ -1,3 +1,22 @@
+/**
+ * NoticiaController.js
+ *
+ * Controlador para la gestión de noticias en la plataforma.
+ * Maneja todas las operaciones CRUD sobre la tabla `noticias`, incluyendo validación
+ * de entradas y control de errores.
+ *
+ * Funcionalidades principales:
+ * - Obtener todas las noticias disponibles, ordenadas por fecha de publicación.
+ * - Obtener una noticia específica mediante su ID.
+ * - Crear una nueva noticia con título, contenido, imagen, fecha y autor.
+ * - Actualizar una noticia existente.
+ * - Eliminar una noticia por su ID.
+ *
+ * Este controlador permite la administración dinámica de noticias que se mostrarán
+ * en el sitio web o aplicación.
+ */
+
+
 import { sql } from "../config/postgre.js";
 
 class NoticiaController {

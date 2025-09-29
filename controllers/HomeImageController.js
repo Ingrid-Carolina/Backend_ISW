@@ -1,3 +1,19 @@
+/**
+ * HomeImageController.js
+ *
+ * Controlador para la gestión de imágenes en la sección de inicio (home).
+ * Utiliza Multer para la carga local de archivos y PostgreSQL para almacenar
+ * las URLs correspondientes en la tabla `home_images`.
+ *
+ * Funcionalidades principales:
+ * - Obtener las imágenes actuales del home.
+ * - Actualizar o insertar (upsert) la URL de una imagen según su tipo.
+ * - Subir imágenes al servidor y devolver una URL accesible.
+ *
+ * Este controlador permite que las imágenes mostradas en la página principal
+ * sean dinámicas y administrables desde el backend.
+ */
+
 import { sql } from '../config/postgre.js';
 import multer from 'multer';
 import path from 'path'; 
