@@ -91,6 +91,8 @@ router.get('/noticias/:id', NoticiaController.getNoticiaById);
 
 //testimonios
 router.get('/obtenertestimonios', AuthController.obtenerTestimonios);
+router.put("testimonios/destacado", requireAuth, requireRole('admin'), AuthController.destacarTestimonio);
+router.get("testimonios/destacado", AuthController.obtenerDestacado);
 router.post('/registrartestimonio', requireAuth, requireRole('admin'), AuthController.registrarTestimonio);
 router.put('/testimonio/:id', requireAuth, requireRole('admin'), AuthController.actualizarTestimonio);
 router.delete('/testimonio/:id', requireAuth, requireRole('admin'), AuthController.eliminarTestimonios);
