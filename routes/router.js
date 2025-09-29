@@ -52,6 +52,7 @@ import CategoriaImageController from '../controllers/CategoriaImageController.js
 import NuestroEquipoImageController from '../controllers/NuestroEquipoImageController.js';
 import HomeTextController from '../controllers/HomeTextController.js';
 import CategoriasSiteController from '../controllers/categoriasSiteController.js';
+import VoluntariadoImageController from '../controllers/VoluntariadoImageController.js';
 
 const router = express.Router();
 
@@ -191,6 +192,12 @@ router.get('/detalles/:id', DetalleOrdenController.getDetalleById);
 router.post('/agregardetalle', requireAuth, DetalleOrdenController.addDetalle);
 router.put('/modificardetalle/:id', requireAuth, DetalleOrdenController.actualizarDetalle);
 router.delete('/eliminardetalle/:id', requireAuth, requireRole('admin'), DetalleOrdenController.eliminarDetalle);
+
+//VoluntariadoImageController
+
+router.post("/voluntariado/upload", VoluntariadoImageController.uploadImage);
+router.put("/voluntariado/images", VoluntariadoImageController.updateImage);
+router.get('/voluntariado/getimages', VoluntariadoImageController.getImages);
 
 
 
