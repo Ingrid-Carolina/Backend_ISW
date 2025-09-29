@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>¡Gracias por tu donación!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 24px
+        }
+
+        .card {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e9eef5
+        }
+
+        .header {
+            background: #10045c;
+            color: #fff;
+            padding: 20px
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px
+        }
+
+        .content {
+            padding: 20px;
+            color: #0f172a
+        }
+
+        .p {
+            margin: 0 0 14px 0;
+            line-height: 1.55
+        }
+
+        .pill {
+            display: inline-block;
+            background: #fff1e6;
+            color: #e6691d;
+            border: 1px solid #ffd7bd;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 700
+        }
+
+        .footer {
+            padding: 16px 20px;
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid #e9eef5
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>¡Gracias por tu donación, {{nombre}}!</h1>
+        </div>
+        <div class="content">
+            <p class="p">Apreciamos mucho tu apoyo. Tu contribución de <span class="pill">{{monto}}</span> nos ayuda a
+                seguir con nuestra misión.</p>
+            {{#if_comentario}}<p class="p">Tu mensaje: “{{comentario}}”.</p>{{/if_comentario}}
+            <p class="p">Fecha de registro: {{fecha}}</p>
+            <p class="p">Si no reconoces este correo, por favor ignóralo.</p>
+        </div>
+        <div class="footer">
+            Pilotos FAH — Gracias por apoyar.
+        </div>
+    </div>
+</body>
+
+</html>

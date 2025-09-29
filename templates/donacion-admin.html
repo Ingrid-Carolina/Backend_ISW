@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Nuevo comprobante de donación</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 24px
+        }
+
+        .card {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e9eef5
+        }
+
+        .header {
+            background: #10045c;
+            color: #fff;
+            padding: 20px
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px
+        }
+
+        .content {
+            padding: 20px;
+            color: #0f172a
+        }
+
+        .row {
+            margin: 12px 0
+        }
+
+        .label {
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em
+        }
+
+        .value {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 4px
+        }
+
+        .note {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #334155;
+            background: #f8fafc;
+            border: 1px dashed #e2e8f0;
+            border-radius: 10px;
+            padding: 12px
+        }
+
+        .footer {
+            padding: 16px 20px;
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid #e9eef5
+        }
+
+        .pill {
+            display: inline-block;
+            background: #fff1e6;
+            color: #e6691d;
+            border: 1px solid #ffd7bd;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 700
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>Nuevo comprobante de donación</h1>
+        </div>
+        <div class="content">
+            <div class="row">
+                <div class="label">Nombre</div>
+                <div class="value">{{nombre}}</div>
+            </div>
+            <div class="row">
+                <div class="label">Monto</div>
+                <div class="value"><span class="pill">{{monto}}</span></div>
+            </div>
+            <div class="row">
+                <div class="label">Fecha</div>
+                <div class="value">{{fecha}}</div>
+            </div>
+
+            <div class="note">
+                Se adjunta el archivo del <b>comprobante</b> enviado desde la subpágina de donaciones.
+            </div>
+        </div>
+        <div class="footer">
+            Este correo fue enviado de forma automática por el sitio Pilotos FAH.
+        </div>
+    </div>
+</body>
+
+</html>

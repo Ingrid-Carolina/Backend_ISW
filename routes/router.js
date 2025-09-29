@@ -53,6 +53,7 @@ import NuestroEquipoImageController from '../controllers/NuestroEquipoImageContr
 import HomeTextController from '../controllers/HomeTextController.js';
 import CategoriasSiteController from '../controllers/categoriasSiteController.js';
 import VoluntariadoImageController from '../controllers/VoluntariadoImageController.js';
+import DonationReceiptController from "../controllers/donationReceiptController.js";
 
 const router = express.Router();
 
@@ -175,6 +176,15 @@ router.put('/donaciones/productos/:id', requireAuth, requireRole('admin'), Produ
 router.delete('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
 router.get('/donaciones', ProductosDonacionController.getDonaciones);
+
+//donar dinero
+router.post(
+  "/donaciones/enviar-comprobante",
+  requireAuth, 
+  uploadImages.single("comprobante"),
+  DonationReceiptController.enviar
+);
+
 
 // ordenes
 router.get('/ordenes', OrdenController.getOrdenes);
