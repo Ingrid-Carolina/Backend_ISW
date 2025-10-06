@@ -16,7 +16,7 @@
 // Middlewares/multerImages.js
 import multer from "multer";
 
-const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif", "application/pdf", ];
 
 const uploadImages = multer({
   storage: multer.memoryStorage(),

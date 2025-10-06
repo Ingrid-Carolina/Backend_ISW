@@ -178,13 +178,7 @@ router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosD
 router.get('/donaciones', ProductosDonacionController.getDonaciones);
 
 //donar dinero
-router.post(
-  "/donaciones/enviar-comprobante",
-  requireAuth, 
-  uploadImages.single("comprobante"),
-  DonationReceiptController.enviar
-);
-
+router.post("/donaciones/enviar-comprobante", requireAuth,uploadImages.single("comprobante"), DonationReceiptController.enviar );
 
 // ordenes
 router.get('/ordenes', OrdenController.getOrdenes);
