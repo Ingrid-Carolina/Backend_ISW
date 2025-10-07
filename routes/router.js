@@ -234,8 +234,12 @@ router.get('/aliados/textos/:clave', AuthController.obtenerTextoPorClave);
 router.put('/aliados/textos', requireAuth, requireRole('admin'), AuthController.actualizarTextoAliados);
 router.put('/aliados/textos/multiple', requireAuth, requireRole('admin'), AuthController.actualizarMultiplesTextosAliados);
 
+//VideosTestimonios
 
-
+router.post('/registrarvideotestimonio',requireAuth, requireRole('admin'), AuthController.registarVideoTestimonio );
+router.get('/obtenervideotestimonio', AuthController.obtenerVideosTestimonios);
+router.put('/videotestimonio/:id',requireAuth, requireRole('admin'), AuthController.actualizarVideoTestimonio);
+router.delete('/videotestimonio/:id', requireAuth, requireRole('admin'), AuthController.eliminarVideoTestimonio);
 //Historia editar texto
 router.get('/historia/textos', AuthController.obtenerTextosHistoria);
 router.get('/historia/textos/:clave', AuthController.obtenerTextoPorClave);

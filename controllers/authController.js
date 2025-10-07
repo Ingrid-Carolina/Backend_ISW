@@ -2087,5 +2087,95 @@ class AuthController {
       });
     }
   }
+
+static async registarVideoTestimonio(req, res) {
+  const { nombre_video, url } = req.body;
+
+  try {
+    if (!nombre_video?.trim() || !url?.trim()) {
+      return res.status(400).send({ mensaje: "Faltan campos requeridos" });
+    }
+
+    const videodata = {
+      nombre_video,
+      url,
+    };
+
+    await sql`INSERT INTO VIDEO_TESTIMONIOS ${sql(videodata)}`;
+
+    res.status(201).send({
+      mensaje: "Su video fue creado correctamente",
+    });
+  } catch (err) {
+    res.status(500).send({
+      mensaje: "Error al crear el video",
+      detalle: err.message,
+    });
+  }
+}
+
+
+  static async obtenerVideosTestimonios(req, res) {
+    try {
+      const videos = await sql`
+        SELECT id_video, nombre_video, url FROM VIDEO_TESTIMONIOS
+    `;
+      console.log("Videos obtenidos!");
+      res.status(200).json(videos); //los guarda en un json
+    } catch (error) {
+      console.error("Error al obtener videos de los testimonios:", error);
+      res
+        .status(500)
+        .send({
+          mensaje: "Error al obtener videos de los testimonios",
+          error: error.message,
+        });
+    }
+  }
+
+  static async eliminarVideoTestimonio(req, res) {
+    const { id } = req.params; //no es req.body, por que el id no lo introduce el usuario explicitamente vomo en un form
+
+    try {
+      const result = await sql`
+      DELETE FROM VIDEO_TESTIMONIOS WHERE id_video = ${id}
+    `;
+
+      res.status(200).send({ mensaje: "Testimonio eliminado correctamente" });
+    } catch (error) {
+      console.error("Error al eliminar el video del Testimonio:", error);
+      res.status(500).send({
+        mensaje: "Error al eliminar el video del testimonio",
+        error: error.message,
+      });
+    }
+  }
+
+   static async actualizarVideoTestimonio(req, res) {
+    const { id } = req.params;
+    const { nombre_video, url } = req.body;
+
+    try {
+      const result = await sql`
+      UPDATE VIDEO_TESTIMONIOS
+      SET nombre_video = ${nombre_video},
+        url = ${url}
+      WHERE id_video = ${id}
+       RETURNING id_video
+    `;
+
+      res.status(200).send({
+        mensaje: "Testimonio actualizado correctamente",
+        id: result[0].id_video,
+      });
+    } catch (error) {
+      console.error("Error al actualizar el video del testimonio:", error);
+      res.status(500).send({
+        mensaje: "Error al actualizar el video del testimonio",
+        detalle: error.message,
+      });
+    }
+  }
+
 }
 export default AuthController;
