@@ -197,12 +197,12 @@ class OrdenController {
   }
 
   static async setestado(req, res) {
-    const { id } = req.params;
+    const { idorden } = req.params;
     const { estado } = req.body;
 
     try {
       const result = await sql`
-        UPDATE ORDENES SET estado = ${estado} WHERE idorden = ${id}
+        UPDATE ORDENES SET estado = ${estado} WHERE idorden = ${idorden}
       `;
 
       res.status(203).send({ mensaje: "Estado actualizado correctamente!" });

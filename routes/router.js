@@ -176,6 +176,7 @@ router.put('/donaciones/productos/:id', requireAuth, requireRole('admin'), Produ
 router.delete('/donaciones/productos/:id', requireAuth, requireRole('admin'), ProductosDonacionController.deleteProducto);
 router.post('/donaciones/registrardonacion', DonacionesFormValidator, ProductosDonacionController.registrardonacion);
 router.get('/donaciones', ProductosDonacionController.getDonaciones);
+router.put('/donaciones/:id_donacion',requireAuth, requireRole('admin'), ProductosDonacionController.setestado);
 
 //donar dinero
 router.post("/donaciones/enviar-comprobante", requireAuth,uploadImages.single("comprobante"), DonationReceiptController.enviar );
@@ -185,7 +186,7 @@ router.get('/ordenes', OrdenController.getOrdenes);
 router.get('/ordenes/:idorden/productos_comprados', OrdenController.getProductosbyID);
 router.get('/ordenes/:id', OrdenController.getOrdenById);
 router.get('/idorden', AuthController.obteneridorden);
-router.put('/orden/:idorden', OrdenController.setestado);
+router.put('/estado/:idorden', OrdenController.setestado);
 router.post('/agregarorden', requireAuth, OrdenController.addOrden);
 router.put('/modificarorden/:id', requireAuth, OrdenController.actualizarOrden);
 router.delete('/eliminarorden/:id', requireAuth, requireRole('admin'), OrdenController.eliminarOrden);

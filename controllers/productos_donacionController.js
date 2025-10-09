@@ -141,7 +141,7 @@ class ProductosDonacionController {
   static async getDonaciones(req, res) {
   try {
     const donaciones = await sql`
-      SELECT id_donacion, nombre, telefono, correo, dia, horario, descripcion
+      SELECT id_donacion, nombre, telefono, correo, dia, horario, descripcion,estado
       FROM donaciones
       ORDER BY id_donacion DESC
     `;
@@ -151,6 +151,23 @@ class ProductosDonacionController {
     res.status(500).json({ error: `Error al obtener donaciones: ${e}` });
   }
 }
+
+ static async setestado(req, res) {
+    const { id_donacion } = req.params;
+    const { estado } = req.body;
+
+    try {
+      const result = await sql`
+      UPDATE DONACIONES SET estado = ${estado} WHERE id_donacion = ${id_donacion}
+    `;
+
+      res.status(203).send({ mensaje: "Estado actualizado correctamente!" });
+    } catch (err) {
+      res
+        .status(500)
+        .send({ mensaje: "Error al setear el estado", error: err.message });
+    }
+  }
 }
 
 export default ProductosDonacionController;
