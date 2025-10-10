@@ -63,7 +63,8 @@ class OrdenController {
       const ordenes = await sql`
       SELECT o.idorden, o.fecha, o.estado, u.nombre AS nombre_usuario, u.email
       FROM ordenes o
-      JOIN usuarios u ON o.usuario_id = u.id;
+      JOIN usuarios u ON o.usuario_id = u.id
+      ORDER BY o.idorden DESC
     `;
       res.status(200).json({ ordenes });
     } catch (error) {
