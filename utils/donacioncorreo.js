@@ -26,6 +26,13 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 
+function splitRecipients(envVarValue) {
+  return (envVarValue || "")
+    .split(/[;,]/)      // admite coma o punto y coma
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -93,21 +100,22 @@ Pronto te contactaremos para coordinar la entrega.`;
  */
 export default async function enviarCorreoDonacion(datos) {
   const from = `"Pilotos FAH" <${process.env.EMAIL_FROM}>`;
-  const adminTo = process.env.EMAIL_TO || process.env.EMAIL_FROM;
 
-  // 1) correo interno
+  // soporta múltiples destinatarios
+  const adminRecipients = splitRecipients(process.env.EMAIL_TO || process.env.EMAIL_FROM);
+
+  // 1) correo interno (a todos los admins)
   await resend.emails.send({
     from,
-    to: adminTo,
+    to: adminRecipients,                 
     subject: `Nueva donación: ${datos.nombre || "Anónimo"}`,
     html: adminHtml(datos),
     text: adminText(datos),
   });
 
-  // 2) correo al donante
+  // 2) correo al donante (opcional)
   if (datos.correo) {
     const htmlDonor = await renderDonorTemplate(datos);
-
     await resend.emails.send({
       from,
       to: datos.correo,
