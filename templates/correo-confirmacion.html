@@ -1,185 +1,199 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:v="urn:schemas-microsoft-com:vml">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Formulario Recibido</title>
+    <meta charset="utf-8">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formulario recibido</title>
+    <!--[if mso]>
     <style>
+      * { font-family: Arial, sans-serif !important; }
+    </style>
+  <![endif]-->
+    <style>
+        /* Estilos base (soportados ampliamente) */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f9fc;
             margin: 0;
             padding: 0;
+            background: #f5f7fb;
         }
 
-        .email-template {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            color: #333;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .email-header {
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 15px;
-        }
-
-        .pilotos-logo {
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: #0c005a;
-            margin-bottom: 10px;
-        }
-
-        .email-title {
-            font-size: 24px;
-            color: #0c005a;
-            margin: 0;
-        }
-
-        .email-subtitle {
-            color: #555;
-            margin-top: 8px;
-            font-size: 16px;
-        }
-
-        .email-body {
-            margin-top: 20px;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .greeting {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .purchase-details {
-            margin-top: 15px;
-            background: #f1f5fb;
-            padding: 12px;
-            border-radius: 6px;
-        }
-
-        .purchase-item {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #ddd;
-            padding: 6px 0;
-        }
-
-        .content-text {
-            margin-top: 15px;
-        }
-
-        .cta-button {
-            display: inline-block;
-            margin-top: 20px;
-            background: #0c005a;
-            color: white;
+        img {
+            border: 0;
+            outline: none;
             text-decoration: none;
-            padding: 10px 18px;
-            border-radius: 4px;
-            font-weight: bold;
+            display: block;
         }
 
-        .email-footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 14px;
-            color: #555;
-        }
-
-        .social-links {
-            margin: 10px 0;
-        }
-
-        .social-link {
-            margin: 0 8px;
-            font-size: 18px;
+        a {
             text-decoration: none;
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .px-24 {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            .py-24 {
+                padding-top: 16px !important;
+                padding-bottom: 16px !important;
+            }
+
+            .h1 {
+                font-size: 22px !important;
+                line-height: 28px !important;
+            }
+
+            .lead {
+                font-size: 14px !important;
+            }
+
+            .btn {
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+            }
         }
     </style>
 </head>
 
-<body>
-    <div class="email-template">
-        <div class="email-header">
-            <div class="logo-section">
-                <div class="pilotos-logo">LOGO PILOTOS</div>
-            </div>
-            <h1 class="email-title">¡Hemos Recibido tu Formulario!</h1>
-            <p class="email-subtitle">
-                Gracias por ponerte en contacto con Pilotos FAH
-            </p>
-        </div>
-
-        <div class="email-body">
-            <div class="greeting">¡Hola {{nombre}}!</div>
-
-            <div class="content-text">
-                Te confirmamos que tu solicitud ha sido recibida correctamente.
-                Nuestro equipo la revisará y se pondrá en contacto contigo en un plazo
-                de
-                <strong>24–48 horas hábiles</strong>.
-            </div>
-
-            <div class="content-text">
-                <strong>Resumen de tu mensaje:</strong>
-            </div>
-
-            <div class="purchase-details">
-                <div class="purchase-item">
-                    <span>Nombre Completo:</span><span>{{nombre}} {{apellido}}</span>
-                </div>
-                <div class="purchase-item">
-                    <span>Teléfono:</span><span>{{telefono}}</span>
-                </div>
-                <div class="purchase-item">
-                    <span>Correo Electrónico:</span><span>{{correo}}</span>
-                </div>
-                <div class="purchase-item">
-                    <span>Dirección:</span><span>{{direccion}}</span>
-                </div>
-                <div class="purchase-item">
-                    <span>Propósito:</span><span>{{proposito}}</span>
-                </div>
-            </div>
-
-            <div class="content-text">
-                <strong>Tu mensaje:</strong><br />
-                <em>{{mensaje}}</em>
-            </div>
-
-            <div class="content-text">
-                Mientras tanto, puedes visitar nuestro sitio para conocer más sobre
-                las actividades de la Asociación.
-            </div>
-
-            <div style="text-align: center">
-                <a href="https://pilotosbaseball.netlify.app/" class="cta-button">Visitar Sitio</a>
-            </div>
-        </div>
-
-        <div class="email-footer">
-            <div class="footer-text">¡Potencia tu juego, alcanza el cielo!</div>
-            <div class="social-links">
-                <a href="{{enlace_email}}" class="social-link">📧</a>
-                <a href="{{enlace_telefono}}" class="social-link">📱</a>
-                <a href="{{enlace_sitio}}" class="social-link">🌐</a>
-            </div>
-            <div class="contact-info">
-                Asociación de Béisbol Menor Pilotos FAH<br />
-                Email: pilotoshn@outlook.com' | Tel: +504 9918-2456
-            </div>
-        </div>
+<body style="margin:0; padding:0; background:#f5f7fb;">
+    <!-- Preheader (texto de vista previa en la bandeja) -->
+    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all;">
+        Confirmación: hemos recibido tu formulario. Te contactaremos en 24–48 horas.
     </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f5f7fb;">
+        <tr>
+            <td align="center" style="padding:24px 12px;">
+                <!-- Card -->
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="container"
+                    style="width:600px; max-width:600px; background:#ffffff; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.08); overflow:hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="background:#0c005a; padding:28px 20px;">
+                            <!-- Logo -->
+                            <img src="https://raw.githubusercontent.com/placeholderlogos/pilotos-baseball-logo/main/logo.png"
+                                alt="Logotipo Pilotos FAH" width="72" height="72"
+                                style="border-radius:50%; box-shadow:0 4px 14px rgba(0,0,0,0.25); margin-bottom:12px;">
+                            <div style="color:#ffffff; font-weight:800; font-size:20px; letter-spacing:0.4px;">
+                                PILOTOS&nbsp;FAH</div>
+                            <div style="color:#c7d0ff; font-size:12px; margin-top:4px;">Asociación de Béisbol Menor de
+                                Honduras</div>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td class="px-24 py-24" style="padding:28px 32px;">
+                            <h1 class="h1" style="margin:0 0 10px; color:#0c005a; font-size:24px; line-height:30px;">
+                                ¡Hemos recibido tu formulario, {{nombre}}!
+                            </h1>
+                            <p class="lead" style="margin:0 0 6px; color:#334155; line-height:1.6; font-size:15px;">
+                                Gracias por ponerte en contacto con <strong>Pilotos FAH</strong>. Tu solicitud fue
+                                registrada correctamente.
+                            </p>
+                            <p style="margin:0 0 16px; color:#334155; line-height:1.6; font-size:15px;">
+                                Nuestro equipo la revisará y te responderá en un plazo de <strong>24–48 horas
+                                    hábiles</strong>.
+                            </p>
+
+                            <!-- Resumen -->
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="margin:18px 0 12px; background:#f7f9ff; border:1px solid #e3e9ff; border-radius:10px;">
+                                <tr>
+                                    <td style="padding:16px 18px;">
+                                        <div style="font-weight:700; color:#0c005a; margin-bottom:10px;">Resumen de tu
+                                            formulario</div>
+
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+                                            border="0" style="font-size:14px; color:#27304d;">
+                                            <tr>
+                                                <td style="padding:6px 0; width:45%; color:#64748b;">Nombre completo
+                                                </td>
+                                                <td style="padding:6px 0; font-weight:600;">{{nombre}} {{apellido}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:6px 0; color:#64748b;">Teléfono</td>
+                                                <td style="padding:6px 0; font-weight:600;">{{telefono}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:6px 0; color:#64748b;">Correo electrónico</td>
+                                                <td style="padding:6px 0; font-weight:600;">{{correo}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:6px 0; color:#64748b;">Dirección</td>
+                                                <td style="padding:6px 0; font-weight:600;">{{direccion}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:6px 0; color:#64748b;">Propósito</td>
+                                                <td style="padding:6px 0; font-weight:600;">{{proposito}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Mensaje -->
+                            <div style="margin:14px 0 0; font-weight:700; color:#0c005a;">Tu mensaje</div>
+                            <div
+                                style="margin:8px 0 14px; background:#fff8f3; border:1px solid #ffd8bd; color:#703b10; padding:14px 16px; border-radius:10px; line-height:1.6; font-size:14px;">
+                                <em>{{mensaje}}</em>
+                            </div>
+
+                            <!-- CTA -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+                                style="margin-top:10px;">
+                                <tr>
+                                    <td align="left" bgcolor="#E06C14" style="border-radius:8px;">
+                                        <a class="btn" href="https://pilotosfah.com/" target="_blank"
+                                            style="display:inline-block; padding:12px 18px; color:#ffffff; font-weight:700; font-size:14px;">
+                                            Visitar sitio
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div style="height:1px; background:#eef1ff; margin:24px 0;"></div>
+
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="color:#6b7280; font-size:12px; line-height:1.6;">
+                                        Si necesitas actualizar algún dato o compartiste información por error, responde
+                                        a este correo
+                                        o contáctanos por nuestros canales:
+                                        &nbsp;<a href="{{enlace_email}}" style="color:#0c005a;">Email</a> ·
+                                        <a href="{{enlace_telefono}}" style="color:#0c005a;">Teléfono</a> ·
+                                        <a href="{{enlace_sitio}}" style="color:#0c005a;">Sitio web</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center"
+                            style="background:#f4f6ff; padding:16px 24px; color:#6c6c6c; font-size:12px; line-height:1.6;">
+                            © <span style="white-space:nowrap;"></span> Asociación de Béisbol Menor Pilotos FAH.
+                            Todos los derechos reservados.
+                            <br>
+                            <span style="color:#0c005a;">pilotoshn@outlook.com</span> · <span
+                                style="color:#0c005a;">+504&nbsp;9918-2456</span>
+                        </td>
+                    </tr>
+                </table>
+                <!-- /Card -->
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Nuevo Formulario de Contacto</title>
+    <style>
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #1f2a44
+        }
+
+        .wrap {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 24px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+            overflow: hidden
+        }
+
+        .header {
+            background: #0c005a;
+            color: #fff;
+            padding: 20px
+        }
+
+        .title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .3px
+        }
+
+        .sub {
+            margin-top: 6px;
+            color: #c9d0ff;
+            font-size: 12px
+        }
+
+        .content {
+            padding: 20px
+        }
+
+        .row {
+            margin: 8px 0
+        }
+
+        .label {
+            display: block;
+            font-size: 12px;
+            color: #637299;
+            margin-bottom: 4px
+        }
+
+        .value {
+            font-weight: 600;
+            color: #27304d;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+
+        .hr {
+            height: 1px;
+            background: #eef1ff;
+            margin: 18px 0
+        }
+
+        .muted {
+            color: #7b8ab5;
+            font-size: 12px
+        }
+
+        @media (max-width:600px) {
+            .wrap {
+                padding: 12px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="card">
+            <div class="header">
+                <div class="title">Nuevo formulario de contacto</div>
+                <div class="sub">Recibido: {{fecha}}</div>
+            </div>
+            <div class="content">
+                <div class="row">
+                    <span class="label">Nombre</span>
+                    <div class="value">{{nombre}} {{apellido}}</div>
+                </div>
+                <div class="row">
+                    <span class="label">Correo</span>
+                    <div class="value">{{correo}}</div>
+                </div>
+                <div class="row">
+                    <span class="label">Teléfono</span>
+                    <div class="value">{{telefono}}</div>
+                </div>
+                <div class="row">
+                    <span class="label">Dirección</span>
+                    <div class="value">{{direccion}}</div>
+                </div>
+                <div class="row">
+                    <span class="label">Propósito</span>
+                    <div class="value">{{proposito}}</div>
+                </div>
+                <div class="row">
+                    <span class="label">Mensaje</span>
+                    <div class="value">{{mensaje}}</div>
+                </div>
+
+                <div class="hr"></div>
+                <div class="muted">
+                    Puedes responder directamente a este correo dandole click al correo del cliente para contactarlo
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
